@@ -7,6 +7,7 @@ import { GameHUD } from './ui/GameHUD.tsx';
 import { ResultsModal } from './ui/ResultsModal.tsx';
 import { AudioDeviceModal } from './ui/AudioDeviceModal.tsx';
 import { FretboardScene } from './game/FretboardScene.tsx';
+import { StrumlyLogo } from './ui/StrumlyLogo.tsx';
 import {
   Guitar,
   Mic,
@@ -187,24 +188,9 @@ export const App: React.FC = () => {
           {/* Logo & Brand */}
           <div
             onClick={() => setMode('home')}
-            className="flex items-center gap-3 cursor-pointer group"
+            className="cursor-pointer transition-transform hover:opacity-95 active:scale-98"
           >
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-blue-500/20 group-hover:scale-105 transition-transform">
-              <Guitar className="w-5 h-5 text-white" />
-            </div>
-            <div>
-              <div className="flex items-center gap-1.5">
-                <span className="font-black text-base tracking-wider bg-gradient-to-r from-white via-zinc-200 to-zinc-400 bg-clip-text text-transparent">
-                  PROJECT GUITAR
-                </span>
-                <span className="px-1.5 py-0.2 rounded text-[10px] font-extrabold bg-blue-500/20 text-blue-400 border border-blue-500/30">
-                  3D
-                </span>
-              </div>
-              <div className="text-[10px] text-zinc-400 -mt-0.5">
-                Next-Gen Guitar Learning
-              </div>
-            </div>
+            <StrumlyLogo size="md" />
           </div>
 
           {/* Navigation Items */}
@@ -288,7 +274,7 @@ export const App: React.FC = () => {
             <span className="text-xs font-bold uppercase tracking-wider text-zinc-300">
               Sensibilidade do Microfone
             </span>
-            <span className="text-xs font-mono font-bold text-blue-400">
+            <span className="text-xs font-mono font-bold text-orange-400">
               {sensitivity.toFixed(1)}x
             </span>
           </div>
@@ -299,7 +285,7 @@ export const App: React.FC = () => {
             step="0.1"
             value={sensitivity}
             onChange={(e) => setSensitivity(parseFloat(e.target.value))}
-            className="w-full accent-blue-500 cursor-pointer"
+            className="w-full accent-orange-500 cursor-pointer"
           />
           <div className="flex justify-between text-[10px] text-zinc-500 mt-1">
             <span>Mais Suave</span>
@@ -344,7 +330,7 @@ export const App: React.FC = () => {
       {/* FOOTER HINT FOR GAMEPLAY */}
       {mode === 'gameplay' && (
         <div className="absolute bottom-2 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full bg-zinc-900/60 border border-zinc-800/60 text-[11px] text-zinc-400 pointer-events-none z-30 flex items-center gap-1.5 backdrop-blur-sm">
-          <Sparkles className="w-3 h-3 text-blue-400" />
+          <Sparkles className="w-3 h-3 text-orange-400" />
           <span>Toque a nota no violão ou pressione [Espaço] para testar</span>
         </div>
       )}

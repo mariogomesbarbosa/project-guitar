@@ -66,7 +66,7 @@ export const GameHUD: React.FC = () => {
 
           <div className="px-3.5 py-1.5 rounded-xl bg-zinc-900/80 border border-zinc-800 backdrop-blur-md">
             <div className="flex items-center gap-2">
-              <Music className="w-4 h-4 text-blue-400" />
+              <Music className="w-4 h-4 text-orange-400" />
               <h2 className="font-bold text-sm text-zinc-100 max-w-[200px] sm:max-w-md truncate">
                 {currentLesson?.title || 'Lição'}
               </h2>
@@ -82,7 +82,7 @@ export const GameHUD: React.FC = () => {
               onClick={() => setPlayMode('guided')}
               className={`flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
                 playMode === 'guided'
-                  ? 'bg-blue-600 text-white shadow-sm'
+                  ? 'bg-gradient-to-r from-orange-500 to-rose-500 text-white shadow-sm'
                   : 'text-zinc-400 hover:text-zinc-200'
               }`}
               title="Modo Guiado: o jogo aguarda você tocar a nota certa para avançar"
@@ -113,7 +113,7 @@ export const GameHUD: React.FC = () => {
           </div>
           <div className="w-full h-2.5 bg-zinc-900/90 rounded-full border border-zinc-800/80 overflow-hidden p-0.5">
             <div
-              className="h-full bg-gradient-to-r from-blue-500 via-indigo-500 to-emerald-400 rounded-full transition-all duration-300 shadow-[0_0_10px_rgba(59,130,246,0.5)]"
+              className="h-full bg-gradient-to-r from-orange-500 via-rose-500 to-purple-500 rounded-full transition-all duration-300 shadow-[0_0_10px_rgba(255,87,34,0.5)]"
               style={{ width: `${progressPercent}%` }}
             />
           </div>
@@ -165,7 +165,7 @@ export const GameHUD: React.FC = () => {
               lastFeedback.quality === 'perfect'
                 ? 'bg-emerald-500/20 border-emerald-400/80 text-emerald-300 shadow-emerald-500/30'
                 : lastFeedback.quality === 'good'
-                ? 'bg-blue-500/20 border-blue-400/80 text-blue-300 shadow-blue-500/30'
+                ? 'bg-purple-500/20 border-purple-400/80 text-purple-300 shadow-purple-500/30'
                 : 'bg-red-500/20 border-red-400/80 text-red-300 shadow-red-500/30'
             }`}
           >
@@ -223,7 +223,7 @@ export const GameHUD: React.FC = () => {
                   multiplier >= 4
                     ? 'bg-purple-600/30 text-purple-300 border-purple-500 shadow-[0_0_10px_rgba(168,85,247,0.5)]'
                     : multiplier >= 3
-                    ? 'bg-blue-600/30 text-blue-300 border-blue-500'
+                    ? 'bg-orange-600/30 text-orange-300 border-orange-500 shadow-[0_0_8px_rgba(249,115,22,0.4)]'
                     : multiplier >= 2
                     ? 'bg-amber-600/30 text-amber-300 border-amber-500'
                     : 'bg-zinc-800/80 text-zinc-400 border-zinc-700'
@@ -241,8 +241,8 @@ export const GameHUD: React.FC = () => {
             <div
               className="flex flex-col items-center p-4 sm:p-5 rounded-3xl bg-zinc-950/90 border-2 backdrop-blur-xl shadow-2xl transition-all"
               style={{
-                borderColor: targetStringStyle?.colorHex || '#3b82f6',
-                boxShadow: `0 0 24px ${targetStringStyle?.colorGlow || 'rgba(59,130,246,0.3)'}`,
+                borderColor: targetStringStyle?.colorHex || '#f97316',
+                boxShadow: `0 0 24px ${targetStringStyle?.colorGlow || 'rgba(249,115,22,0.3)'}`,
               }}
             >
               <div className="flex items-center gap-2 mb-1">
@@ -277,7 +277,7 @@ export const GameHUD: React.FC = () => {
                   </span>
                 )}
                 {currentTargetNote.chordName && (
-                  <span className="bg-blue-950/60 border border-blue-800/60 px-2 py-0.5 rounded-md text-[11px] text-blue-300 font-bold">
+                  <span className="bg-purple-950/60 border border-purple-800/60 px-2 py-0.5 rounded-md text-[11px] text-purple-300 font-bold">
                     Acorde {currentTargetNote.chordName}
                   </span>
                 )}
@@ -352,7 +352,7 @@ export const GameHUD: React.FC = () => {
             <div className="w-full flex flex-col gap-2.5">
               <button
                 onClick={togglePause}
-                className="w-full py-3 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold transition-all cursor-pointer flex items-center justify-center gap-2 shadow-lg shadow-blue-500/20"
+                className="w-full py-3 rounded-xl bg-gradient-to-r from-orange-500 to-rose-500 hover:from-orange-400 hover:to-rose-400 text-white font-bold transition-all cursor-pointer flex items-center justify-center gap-2 shadow-lg shadow-orange-500/25 active:scale-98"
               >
                 <Play className="w-4 h-4 fill-white" />
                 Continuar

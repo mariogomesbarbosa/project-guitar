@@ -182,7 +182,7 @@ export const ResultsModal: React.FC = () => {
           {nextLesson && (
             <button
               onClick={() => startLesson(nextLesson)}
-              className="w-full py-3.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-sm transition-all cursor-pointer flex items-center justify-center gap-2 shadow-lg shadow-blue-500/25 hover:scale-[1.02]"
+              className="w-full py-3.5 rounded-xl bg-gradient-to-r from-orange-500 via-rose-500 to-purple-600 hover:from-orange-400 hover:to-purple-500 text-white font-bold text-sm transition-all cursor-pointer flex items-center justify-center gap-2 shadow-lg shadow-orange-500/25 hover:scale-[1.02] active:scale-98"
             >
               <span>Próxima Lição: {nextLesson.title}</span>
               <ArrowRight className="w-4 h-4" />
