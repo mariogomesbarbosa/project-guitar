@@ -91,39 +91,114 @@ export function FretboardScene({
 }
 
 /**
- * Positions and aims the camera dynamically tracking the active target note's fret.
- * Smoothly pans along the X axis so the beginning of the neck (Nut / Frets 0-3) is fully
- * visible when playing open strings, and glides along the neck as higher frets are played.
+ * Controlador de Câmera Inteligente e Adaptativo Estilo Rocksmith.
+ * - Analisa uma janela móvel composta pela nota ativa e as próximas 4 a 5 notas.
+ * - Centraliza a câmera no espaço médio entre essas notas com margem de segurança.
+ * - Aplica Zoom Out dinâmico (afastando em Z e elevando em Y) quando há grandes saltos de traste na janela.
+ * - Transições ultra-suaves com amortecimento exponencial e zona morta (deadzone) para evitar solavancos.
  */
 function SceneController() {
+  const currentLesson = useGameStore((s) => s.currentLesson);
+  const currentNoteIndex = useGameStore((s) => s.currentNoteIndex);
   const currentNote = useGameStore((s) => s.getCurrentNote());
-  const currentCamXRef = useRef(-5.2);
-  const lookAtVecRef = useRef(new THREE.Vector3(-5.2, -0.15, -1.2));
+
+  // Alvos desejados filtrados pela zona morta (deadzone)
+  const desiredXRef = useRef(-5.2);
+  const desiredYRef = useRef(2.4);
+  const desiredZRef = useRef(7.5);
+
+  // Posições e orientações atuais interpoladas suavemente
+  const currentCamPosRef = useRef(new THREE.Vector3(-5.2, 2.4, 7.5));
+  const currentLookAtRef = useRef(new THREE.Vector3(-5.2, -0.15, -1.2));
 
   useFrame(({ camera }, delta) => {
-    // Alinha a câmera diretamente com a nota que deve ser tocada
-    const targetFret = currentNote ? currentNote.fret : 0;
-    const fretCenter = getFretCenterPosition(targetFret);
+    // 1. Obter janela das próximas 4 a 5 notas
+    const notes = currentLesson?.notes;
+    let windowFrets: number[] = [];
 
-    // Enquadramento: cordas soltas (fret 0) e casas iniciais ficam confortavelmente visíveis
-    // Clampa entre -5.2 (foco nas casas 0 a 4) e 0.0 (foco na casa 12)
-    const desiredX = THREE.MathUtils.clamp(fretCenter + 2.0, -5.2, 0.0);
+    if (notes && notes.length > 0) {
+      const startIdx = Math.max(0, currentNoteIndex);
+      const endIdx = Math.min(notes.length, startIdx + 5);
+      const upcomingSlice = notes.slice(startIdx, endIdx);
+      windowFrets = upcomingSlice.map((n) => n.fret);
+    }
 
-    // Movimento suave e cinemático de câmera
-    currentCamXRef.current = THREE.MathUtils.damp(
-      currentCamXRef.current,
-      desiredX,
-      4.5,
+    if (windowFrets.length === 0) {
+      windowFrets = [currentNote ? currentNote.fret : 0];
+    }
+
+    // 2. Calcular limites espaciais X (bounding box) da janela de notas
+    const xPositions = windowFrets.map((fret) => getFretCenterPosition(fret));
+    const minX = Math.min(...xPositions);
+    const maxX = Math.max(...xPositions);
+    const span = maxX - minX;
+    const centerX = (minX + maxX) / 2;
+
+    // 3. Centralização com margem de conforto
+    // Deslocamento leve para a direita (+1.3) para dar espaço de leitura das notas se aproximando
+    let targetX = centerX + 1.3;
+
+    // Se houver corda solta / pestana na janela (minX próximo a -7.4),
+    // limitar targetX em no máximo -4.6 para que a casa 0 nunca saia da tela
+    if (minX <= -7.0) {
+      targetX = Math.min(targetX, -4.6);
+    }
+    // Clampar limites físicos do braço (-5.2 nas casas graves até 0.0 na casa 12)
+    targetX = THREE.MathUtils.clamp(targetX, -5.2, 0.0);
+
+    // 4. Zoom out adaptativo para grandes distâncias de trastes
+    const baseZ = 7.5;
+    const baseY = 2.4;
+    let targetZ = baseZ;
+    let targetY = baseY;
+
+    // Se a distância entre a menor e maior casa na janela for grande (> 3.5 unidades)
+    if (span > 3.5) {
+      const extraDistance = Math.min((span - 3.5) * 0.65, 3.2);
+      targetZ = baseZ + extraDistance;
+      targetY = baseY + extraDistance * 0.28;
+    }
+
+    // 5. Filtro de Zona Morta (Deadzone) para eliminar micro-tremores
+    if (Math.abs(targetX - desiredXRef.current) > 0.3) {
+      desiredXRef.current = targetX;
+    }
+    if (Math.abs(targetZ - desiredZRef.current) > 0.35) {
+      desiredZRef.current = targetZ;
+      desiredYRef.current = targetY;
+    }
+
+    // 6. Amortecimento cinemático contínuo ultra-suave (fator 2.4 para movimento orgânico)
+    const smoothFactor = 2.4;
+    currentCamPosRef.current.x = THREE.MathUtils.damp(
+      currentCamPosRef.current.x,
+      desiredXRef.current,
+      smoothFactor,
+      delta
+    );
+    currentCamPosRef.current.y = THREE.MathUtils.damp(
+      currentCamPosRef.current.y,
+      desiredYRef.current,
+      smoothFactor * 0.9,
+      delta
+    );
+    currentCamPosRef.current.z = THREE.MathUtils.damp(
+      currentCamPosRef.current.z,
+      desiredZRef.current,
+      smoothFactor * 0.9,
       delta
     );
 
-    const camX = currentCamXRef.current;
-    camera.position.x = camX;
-    camera.position.y = 2.4;
-    camera.position.z = 7.6;
+    camera.position.copy(currentCamPosRef.current);
 
-    lookAtVecRef.current.set(camX, -0.15, -1.2);
-    camera.lookAt(lookAtVecRef.current);
+    // LookAt também interpola suavemente acompanhando a câmera
+    currentLookAtRef.current.x = THREE.MathUtils.damp(
+      currentLookAtRef.current.x,
+      currentCamPosRef.current.x,
+      smoothFactor,
+      delta
+    );
+    camera.lookAt(currentLookAtRef.current);
   });
 
   return null;
