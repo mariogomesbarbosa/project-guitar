@@ -11,10 +11,12 @@ import {
   Guitar,
   CheckCircle,
   Award,
+  Zap,
+  Target,
 } from 'lucide-react';
 
 export const LessonSelect: React.FC = () => {
-  const { startLesson, setMode } = useGameStore();
+  const { startLesson, setMode, playMode, setPlayMode } = useGameStore();
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
 
   const categories: { id: string; label: string }[] = [
@@ -72,7 +74,7 @@ export const LessonSelect: React.FC = () => {
 
             <div className="flex flex-wrap items-center gap-3">
               <button
-                onClick={() => startLesson(SAMPLE_LESSONS[0])}
+                onClick={() => startLesson(SAMPLE_LESSONS[0], playMode)}
                 className="px-6 py-3 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-sm transition-all shadow-lg shadow-blue-500/25 flex items-center gap-2 cursor-pointer hover:scale-105"
               >
                 <Play className="w-4 h-4 fill-white" />
@@ -92,21 +94,52 @@ export const LessonSelect: React.FC = () => {
           <div className="absolute right-0 bottom-0 top-0 w-1/3 bg-gradient-to-l from-blue-600/10 to-transparent pointer-events-none" />
         </div>
 
-        {/* Category Tabs */}
-        <div className="shrink-0 flex items-center gap-2 overflow-x-auto pb-2 mb-6 scrollbar-none">
-          {categories.map((cat) => (
+        {/* Mode Selector & Category Tabs */}
+        <div className="shrink-0 flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+          {/* Category Tabs */}
+          <div className="flex items-center gap-2 overflow-x-auto pb-2 sm:pb-0 scrollbar-none">
+            {categories.map((cat) => (
+              <button
+                key={cat.id}
+                onClick={() => setSelectedCategory(cat.id)}
+                className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all whitespace-nowrap cursor-pointer ${
+                  selectedCategory === cat.id
+                    ? 'bg-zinc-100 text-zinc-950 shadow-md'
+                    : 'bg-zinc-900/80 text-zinc-400 hover:text-zinc-200 border border-zinc-800/80'
+                }`}
+              >
+                {cat.label}
+              </button>
+            ))}
+          </div>
+
+          {/* Mode Switcher Pill */}
+          <div className="flex items-center gap-1 bg-zinc-950/80 p-1 rounded-2xl border border-zinc-800/80 self-start sm:self-auto">
             <button
-              key={cat.id}
-              onClick={() => setSelectedCategory(cat.id)}
-              className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all whitespace-nowrap cursor-pointer ${
-                selectedCategory === cat.id
-                  ? 'bg-zinc-100 text-zinc-950 shadow-md'
-                  : 'bg-zinc-900/80 text-zinc-400 hover:text-zinc-200 border border-zinc-800/80'
+              onClick={() => setPlayMode('guided')}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                playMode === 'guided'
+                  ? 'bg-blue-600 text-white shadow'
+                  : 'text-zinc-400 hover:text-zinc-200'
               }`}
+              title="A nota aguarda sua ação antes de avançar"
             >
-              {cat.label}
+              <Target className="w-3.5 h-3.5" />
+              Modo Guiado
             </button>
-          ))}
+            <button
+              onClick={() => setPlayMode('realtime')}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                playMode === 'realtime'
+                  ? 'bg-amber-500 text-zinc-950 shadow'
+                  : 'text-zinc-400 hover:text-zinc-200'
+              }`}
+              title="As notas descem em tempo real no ritmo da música sem parar"
+            >
+              <Zap className="w-3.5 h-3.5" />
+              Tempo Real
+            </button>
+          </div>
         </div>
 
         {/* Lesson Grid */}
@@ -159,7 +192,7 @@ export const LessonSelect: React.FC = () => {
                 </div>
 
                 <button
-                  onClick={() => startLesson(lesson)}
+                  onClick={() => startLesson(lesson, playMode)}
                   className="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold transition-all shadow-md shadow-blue-500/20 flex items-center gap-1.5 cursor-pointer group-hover:scale-105"
                 >
                   <Play className="w-3.5 h-3.5 fill-white" />

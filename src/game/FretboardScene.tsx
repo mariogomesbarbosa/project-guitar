@@ -479,14 +479,50 @@ function SingleVibratingString({ config, length, posY, hitTimestamp }: SingleStr
 
 /**
  * 3D Falling Highway Notes for the current lesson.
- * Displays the current note right at the strike line and upcoming notes traveling down the tunnel.
+ * Supports both Guided mode (static queue) and Realtime mode (continuous flow at lesson BPM).
  */
 function LessonHighwayNotes() {
-  const { currentLesson, currentNoteIndex } = useGameStore();
+  const { currentLesson, currentNoteIndex, playMode, playbackTime } = useGameStore();
   if (!currentLesson || !currentLesson.notes.length) return null;
 
   const notes = currentLesson.notes;
-  // Show active note + next 6 notes
+  const bpm = currentLesson.bpm || 75;
+  const noteSpeed = 7.5;
+
+  // Realtime Flow Mode: notes advance continuously down the 3D tunnel based on time
+  if (playMode === 'realtime') {
+    const minTime = playbackTime - 0.4;
+    const maxTime = playbackTime + 4.2;
+
+    const visibleNotes = notes
+      .map((note, idx) => ({
+        note,
+        idx,
+        timeSeconds: (note.beat * 60) / bpm,
+      }))
+      .filter((n) => n.timeSeconds >= minTime && n.timeSeconds <= maxTime);
+
+    return (
+      <group>
+        {visibleNotes.map(({ note, idx, timeSeconds }) => {
+          const targetZ = -(timeSeconds - playbackTime) * noteSpeed;
+          const isCurrent = idx === currentNoteIndex;
+
+          return (
+            <HighwayNoteBlock
+              key={`${note.id}-${idx}`}
+              note={note}
+              targetZ={targetZ}
+              isCurrent={isCurrent}
+              isRealtime={true}
+            />
+          );
+        })}
+      </group>
+    );
+  }
+
+  // Guided Mode: static spacing based on note index queue, waiting for player
   const visibleIndices: number[] = [];
   for (let i = currentNoteIndex; i < Math.min(notes.length, currentNoteIndex + 7); i++) {
     visibleIndices.push(i);
@@ -506,6 +542,7 @@ function LessonHighwayNotes() {
             note={note}
             targetZ={targetZ}
             isCurrent={offsetIndex === 0}
+            isRealtime={false}
           />
         );
       })}
@@ -517,9 +554,10 @@ interface HighwayNoteBlockProps {
   note: { stringIndex: number; fret: number; noteName: string; octave: number; durationBeats?: number };
   targetZ: number;
   isCurrent: boolean;
+  isRealtime: boolean;
 }
 
-function HighwayNoteBlock({ note, targetZ, isCurrent }: HighwayNoteBlockProps) {
+function HighwayNoteBlock({ note, targetZ, isCurrent, isRealtime }: HighwayNoteBlockProps) {
   const groupRef = useRef<THREE.Group>(null);
   const visual = STRING_VISUALS[note.stringIndex] ?? STRING_VISUALS[6];
   const color = visual.color;
@@ -527,21 +565,25 @@ function HighwayNoteBlock({ note, targetZ, isCurrent }: HighwayNoteBlockProps) {
   const posY = getStringYPosition(note.stringIndex);
   const isOpenString = note.fret === 0;
 
-  // Smooth slide animation towards targetZ
+  // Realtime: direct sync per frame. Guided: smooth damp interpolation
   useFrame((_, delta) => {
     if (!groupRef.current) return;
-    groupRef.current.position.z = THREE.MathUtils.damp(
-      groupRef.current.position.z,
-      targetZ,
-      12,
-      delta
-    );
+    if (isRealtime) {
+      groupRef.current.position.z = targetZ;
+    } else {
+      groupRef.current.position.z = THREE.MathUtils.damp(
+        groupRef.current.position.z,
+        targetZ,
+        14,
+        delta
+      );
+    }
   });
 
   return (
     <group
       ref={groupRef}
-      position={[posX, posY, targetZ - 1.5]}
+      position={[posX, posY, targetZ]}
     >
       {isOpenString ? (
         // Open String: Luminous glowing rectangular hoop

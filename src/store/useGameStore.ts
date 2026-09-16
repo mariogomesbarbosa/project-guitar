@@ -32,6 +32,8 @@ export interface GameState {
   currentNoteIndex: number;
   isPlaying: boolean;
   isPaused: boolean;
+  playMode: 'guided' | 'realtime';
+  playbackTime: number; // in seconds
 
   // Score & Metrics
   score: number;
@@ -46,13 +48,16 @@ export interface GameState {
 
   // Actions
   setMode: (mode: AppMode) => void;
+  setPlayMode: (playMode: 'guided' | 'realtime') => void;
+  setPlaybackTime: (time: number) => void;
+  advanceTime: (delta: number) => void;
   setMicActive: (active: boolean) => void;
   setSensitivity: (val: number) => void;
   setTargetTunerString: (str: number | null) => void;
   updatePitch: (pitch: DetectedPitch | null, rms?: number) => void;
 
   selectLesson: (lesson: Lesson) => void;
-  startLesson: (lesson?: Lesson) => void;
+  startLesson: (lesson?: Lesson, initialMode?: 'guided' | 'realtime') => void;
   advanceNote: () => void;
   recordHit: (quality: HitQuality, noteLabel?: string, cents?: number) => void;
   resetScore: () => void;
@@ -87,6 +92,8 @@ export const useGameStore = create<GameState>((set, get) => ({
   currentNoteIndex: 0,
   isPlaying: false,
   isPaused: false,
+  playMode: 'guided',
+  playbackTime: 0,
 
   // Score defaults
   score: 0,
@@ -100,6 +107,13 @@ export const useGameStore = create<GameState>((set, get) => ({
   lastFeedback: null,
 
   setMode: (mode) => set({ mode }),
+
+  setPlayMode: (playMode) => set({ playMode }),
+
+  setPlaybackTime: (time) => set({ playbackTime: Math.max(0, time) }),
+
+  advanceTime: (delta) =>
+    set((state) => ({ playbackTime: Math.max(0, state.playbackTime + delta) })),
 
   setMicActive: (active) => set({ isMicActive: active }),
 
@@ -117,6 +131,7 @@ export const useGameStore = create<GameState>((set, get) => ({
     set({
       currentLesson: lesson,
       currentNoteIndex: 0,
+      playbackTime: 0,
       score: 0,
       combo: 0,
       streak: 0,
@@ -129,14 +144,16 @@ export const useGameStore = create<GameState>((set, get) => ({
       isPaused: false,
     }),
 
-  startLesson: (lesson) => {
+  startLesson: (lesson, initialMode) => {
     const targetLesson = lesson || get().currentLesson || SAMPLE_LESSONS[0];
     set({
       currentLesson: targetLesson,
       mode: 'gameplay',
       isPlaying: true,
       isPaused: false,
+      playMode: initialMode || get().playMode || 'guided',
       currentNoteIndex: 0,
+      playbackTime: 0,
       score: 0,
       combo: 0,
       streak: 0,
