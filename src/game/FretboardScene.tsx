@@ -24,11 +24,11 @@ export function FretboardScene({
   className = 'absolute inset-0 w-full h-full',
 }: FretboardSceneProps) {
   return (
-    <div className={`relative ${className} pointer-events-none select-none overflow-hidden bg-[#07090e]`}>
+    <div className={`relative ${className} pointer-events-none select-none overflow-hidden bg-[#06080d]`}>
       <Canvas
         camera={{
-          position: [0.2, 2.6, 7.8],
-          fov: 46,
+          position: [0.0, 2.4, 7.6],
+          fov: 44,
           near: 0.1,
           far: 60,
         }}
@@ -42,20 +42,26 @@ export function FretboardScene({
         <color attach="background" args={['#080a11']} />
         <fog attach="fog" args={['#080a11', 14, 38]} />
 
-        {/* Controlador cinemático de câmera */}
+        {/* Controlador cinemático de câmera com enquadramento perfeito */}
         <SceneController />
 
-        {/* Iluminação de Estúdio / Palco Rocksmith */}
-        <ambientLight intensity={0.65} />
+        {/* Iluminação frontal e de palco Rocksmith */}
+        <ambientLight intensity={0.75} />
         <directionalLight
-          position={[0, 9, 8]}
-          intensity={1.6}
+          position={[0, 6, 8]}
+          intensity={2.0}
           color="#ffffff"
         />
+        {/* Luz direta sobre o braço para destacar os trastes cromados */}
+        <directionalLight
+          position={[0, 2, 10]}
+          intensity={1.2}
+          color="#e0e7ff"
+        />
         {/* Luzes laterais de recorte neon */}
-        <pointLight position={[-9, 3.5, 2]} intensity={2.2} color="#06b6d4" distance={20} />
-        <pointLight position={[9, 3.5, 2]} intensity={2.2} color="#ec4899" distance={20} />
-        <pointLight position={[0, -2, 4]} intensity={1.0} color="#3b82f6" distance={15} />
+        <pointLight position={[-9, 3.5, 2]} intensity={2.5} color="#06b6d4" distance={25} />
+        <pointLight position={[9, 3.5, 2]} intensity={2.5} color="#ec4899" distance={25} />
+        <pointLight position={[0, -2, 4]} intensity={1.2} color="#3b82f6" distance={15} />
 
         {/* Pista 3D (Highway) em profundidade */}
         <HighwayGrid />
@@ -84,8 +90,8 @@ export function FretboardScene({
  */
 function SceneController() {
   useFrame(({ camera }) => {
-    // Subtle lookAt target centered right at the fretboard strike zone
-    camera.lookAt(new THREE.Vector3(0.2, 0.1, -0.6));
+    // Alinha a câmera diretamente com a pista e o centro do braço do instrumento
+    camera.lookAt(new THREE.Vector3(0.0, -0.15, -1.2));
   });
   return null;
 }
@@ -174,128 +180,131 @@ function FretboardBody() {
 
   return (
     <group position={[0, 0, 0]}>
-      {/* Main Rosewood Neck Plank */}
+      {/* Madeira Nobre do Braço (Rosewood Plank) - Face frontal exatamente em Z = 0 */}
       <mesh
-        position={[0, -neckThickness / 2, 0]}
+        position={[0, 0, -neckThickness / 2]}
         receiveShadow
       >
         <boxGeometry args={[neckLength + 0.8, neckWidth, neckThickness]} />
         <meshStandardMaterial
-          color="#1e1814"
-          roughness={0.65}
+          color="#38251e"
+          roughness={0.55}
+          metalness={0.08}
+        />
+      </mesh>
+
+      {/* Friso Lateral Superior Marfim (Binding) */}
+      <mesh position={[0, neckWidth / 2 + 0.02, -neckThickness / 2]}>
+        <boxGeometry args={[neckLength + 0.8, 0.05, neckThickness]} />
+        <meshStandardMaterial
+          color="#fef3c7"
+          roughness={0.3}
+          metalness={0.1}
+        />
+      </mesh>
+
+      {/* Friso Lateral Inferior Marfim (Binding) */}
+      <mesh position={[0, -neckWidth / 2 - 0.02, -neckThickness / 2]}>
+        <boxGeometry args={[neckLength + 0.8, 0.05, neckThickness]} />
+        <meshStandardMaterial
+          color="#fef3c7"
+          roughness={0.3}
+          metalness={0.1}
+        />
+      </mesh>
+
+      {/* Pestana (Nut) no Traste 0 em osso sintético */}
+      <mesh position={[nutX, 0, 0.06]}>
+        <boxGeometry args={[0.12, neckWidth + 0.02, 0.14]} />
+        <meshStandardMaterial
+          color="#f8fafc"
+          roughness={0.25}
           metalness={0.15}
         />
       </mesh>
 
-      {/* White/Cream Neck Edge Binding */}
-      <mesh position={[0, neckWidth / 2 + 0.03, -neckThickness / 2]}>
-        <boxGeometry args={[neckLength + 0.8, 0.06, neckThickness]} />
-        <meshStandardMaterial
-          color="#fef3c7"
-          roughness={0.4}
-        />
-      </mesh>
-      <mesh position={[0, -neckWidth / 2 - 0.03, -neckThickness / 2]}>
-        <boxGeometry args={[neckLength + 0.8, 0.06, neckThickness]} />
-        <meshStandardMaterial
-          color="#fef3c7"
-          roughness={0.4}
-        />
-      </mesh>
-
-      {/* Nut (Pestana) at Fret 0 */}
-      <mesh position={[nutX, 0, 0]}>
-        <boxGeometry args={[0.12, neckWidth + 0.02, 0.14]} />
-        <meshStandardMaterial
-          color="#f8fafc"
-          roughness={0.3}
-          metalness={0.2}
-        />
-      </mesh>
-
-      {/* Metallic Nickel Fret Bars (Trastes 1 to 12) */}
+      {/* Trastes Metálicos Cromados de Níquel (Trastes 1 a 12) - Em Z = 0.035, saltando da madeira */}
       {fretXPositions.map((xPos, idx) => (
         <mesh
           key={`fret-bar-${idx + 1}`}
-          position={[xPos, 0, 0]}
+          position={[xPos, 0, 0.035]}
         >
-          <cylinderGeometry args={[0.028, 0.028, neckWidth, 16]} />
+          <cylinderGeometry args={[0.032, 0.032, neckWidth, 16]} />
           <meshStandardMaterial
-            color="#e2e8f0"
-            metalness={0.92}
-            roughness={0.2}
+            color="#f8fafc"
+            metalness={0.96}
+            roughness={0.12}
           />
         </mesh>
       ))}
 
-      {/* Pearl Dot Inlays on Single Dot Frets (3, 5, 7, 9) */}
+      {/* Inlays de Madrepérola nas casas 3, 5, 7, 9 - Em Z = 0.008 */}
       {singleDotFrets.map((fretNum) => {
         const xPos = getFretCenterPosition(fretNum, totalFrets, neckLength);
         return (
           <mesh
             key={`dot-${fretNum}`}
-            position={[xPos, 0, 0.005]}
+            position={[xPos, 0, 0.008]}
             rotation={[-Math.PI / 2, 0, 0]}
           >
-            <cylinderGeometry args={[0.14, 0.14, 0.02, 24]} />
+            <cylinderGeometry args={[0.13, 0.13, 0.015, 24]} />
             <meshStandardMaterial
               color="#f1f5f9"
               roughness={0.2}
-              metalness={0.6}
+              metalness={0.5}
             />
           </mesh>
         );
       })}
 
-      {/* Double Pearl Inlays on Fret 12 */}
+      {/* Inlay Duplo de Madrepérola na Casa 12 */}
       {doubleDotFrets.map((fretNum) => {
         const xPos = getFretCenterPosition(fretNum, totalFrets, neckLength);
         return (
           <group
             key={`double-dots-${fretNum}`}
-            position={[xPos, 0, 0.005]}
+            position={[xPos, 0, 0.008]}
           >
             <mesh
               position={[0, 0.52, 0]}
               rotation={[-Math.PI / 2, 0, 0]}
             >
-              <cylinderGeometry args={[0.12, 0.12, 0.02, 24]} />
+              <cylinderGeometry args={[0.11, 0.11, 0.015, 24]} />
               <meshStandardMaterial
                 color="#f1f5f9"
                 roughness={0.2}
-                metalness={0.6}
+                metalness={0.5}
               />
             </mesh>
             <mesh
               position={[0, -0.52, 0]}
               rotation={[-Math.PI / 2, 0, 0]}
             >
-              <cylinderGeometry args={[0.12, 0.12, 0.02, 24]} />
+              <cylinderGeometry args={[0.11, 0.11, 0.015, 24]} />
               <meshStandardMaterial
                 color="#f1f5f9"
                 roughness={0.2}
-                metalness={0.6}
+                metalness={0.5}
               />
             </mesh>
           </group>
         );
       })}
 
-      {/* Fret Numbers printed on the fretboard edge for quick reference */}
+      {/* Números das casas desenhados ao longo da borda inferior do braço */}
       <FretNumberLabels
         totalFrets={totalFrets}
         neckLength={neckLength}
         neckWidth={neckWidth}
       />
 
-      {/* Luminous Strike Line Plane right across the strings at Z = 0 */}
-      <mesh position={[0, 0, 0.02]}>
-        <boxGeometry args={[neckLength + 0.4, neckWidth + 0.1, 0.015]} />
+      {/* Linha laser de ataque sobre a pestana/strike point */}
+      <mesh position={[nutX, 0, 0.08]}>
+        <boxGeometry args={[0.04, neckWidth + 0.1, 0.02]} />
         <meshBasicMaterial
           color="#38bdf8"
           transparent
-          opacity={0.12}
-          blending={THREE.AdditiveBlending}
+          opacity={0.8}
         />
       </mesh>
     </group>
