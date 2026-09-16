@@ -290,7 +290,7 @@ export const TunerOverlay: React.FC = () => {
             onClick={() => setTargetTunerString(null)}
             className={`px-3 py-1 rounded-lg text-xs font-medium transition-all cursor-pointer ${
               targetTunerString === null
-                ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/30'
+                ? 'bg-gradient-to-r from-orange-500 to-rose-500 text-white shadow-md shadow-orange-500/25'
                 : 'bg-zinc-800 text-zinc-400 hover:text-zinc-200'
             }`}
           >

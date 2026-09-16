@@ -99,7 +99,7 @@ export const AudioDeviceModal: React.FC = () => {
         {/* Modal Header */}
         <div className="flex items-center justify-between p-5 border-b border-zinc-800 bg-zinc-900/80">
           <div className="flex items-center gap-2.5">
-            <div className="p-2 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-400">
+            <div className="p-2 rounded-xl bg-orange-500/10 border border-orange-500/20 text-orange-400">
               <Mic className="w-5 h-5" />
             </div>
             <div>
@@ -163,7 +163,7 @@ export const AudioDeviceModal: React.FC = () => {
               <button
                 onClick={loadDevices}
                 disabled={isLoading}
-                className="flex items-center gap-1.5 text-xs text-blue-400 hover:text-blue-300 cursor-pointer disabled:opacity-50"
+                className="flex items-center gap-1.5 text-xs text-orange-400 hover:text-orange-300 cursor-pointer disabled:opacity-50"
               >
                 <RefreshCw className={`w-3.5 h-3.5 ${isLoading ? 'animate-spin' : ''}`} />
                 <span>Atualizar Lista</span>
@@ -198,7 +198,7 @@ export const AudioDeviceModal: React.FC = () => {
                       onClick={() => handleSelectDevice(device.deviceId)}
                       className={`w-full flex items-center justify-between p-3.5 rounded-2xl border text-left transition-all cursor-pointer ${
                         isSelected
-                          ? 'bg-blue-600/15 border-blue-500/50 text-white shadow-md shadow-blue-500/10'
+                          ? 'bg-orange-500/10 border-orange-500/50 text-white shadow-md shadow-orange-500/10'
                           : 'bg-zinc-950/50 hover:bg-zinc-950 border-zinc-800/80 text-zinc-300 hover:border-zinc-700'
                       }`}
                     >
@@ -206,7 +206,7 @@ export const AudioDeviceModal: React.FC = () => {
                         <div
                           className={`p-2 rounded-xl shrink-0 ${
                             isSelected
-                              ? 'bg-blue-500 text-white'
+                              ? 'bg-gradient-to-r from-orange-500 to-rose-500 text-white'
                               : 'bg-zinc-800/70 text-zinc-400'
                           }`}
                         >
@@ -230,7 +230,7 @@ export const AudioDeviceModal: React.FC = () => {
                       </div>
 
                       {isSelected && (
-                        <span className="shrink-0 text-[11px] font-bold px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-400 border border-blue-500/30">
+                        <span className="shrink-0 text-[11px] font-bold px-2 py-0.5 rounded-full bg-orange-500/20 text-orange-400 border border-orange-500/30">
                           Ativo
                         </span>
                       )}
@@ -245,7 +245,7 @@ export const AudioDeviceModal: React.FC = () => {
           <div className="p-4 rounded-2xl bg-zinc-950/50 border border-zinc-800/60">
             <div className="flex items-center justify-between text-xs mb-2">
               <span className="flex items-center gap-1.5 font-semibold text-zinc-300">
-                <Sliders className="w-3.5 h-3.5 text-blue-400" />
+                <Sliders className="w-3.5 h-3.5 text-orange-400" />
                 Sensibilidade do Microfone
               </span>
               <span className="font-mono text-zinc-400">{Math.round(sensitivity * 100)}%</span>
@@ -257,13 +257,13 @@ export const AudioDeviceModal: React.FC = () => {
               step="0.1"
               value={sensitivity}
               onChange={(e) => setSensitivity(parseFloat(e.target.value))}
-              className="w-full accent-blue-500 cursor-pointer h-1.5 bg-zinc-800 rounded-lg"
+              className="w-full accent-orange-500 cursor-pointer h-1.5 bg-zinc-800 rounded-lg"
             />
           </div>
 
           {/* Helpful Tip for Interfaces / Cables */}
-          <div className="flex items-start gap-2.5 p-3 rounded-2xl bg-blue-950/20 border border-blue-900/30 text-xs text-zinc-300">
-            <HelpCircle className="w-4 h-4 text-blue-400 shrink-0 mt-0.5" />
+          <div className="flex items-start gap-2.5 p-3 rounded-2xl bg-purple-950/20 border border-purple-900/30 text-xs text-zinc-300">
+            <HelpCircle className="w-4 h-4 text-purple-400 shrink-0 mt-0.5" />
             <span>
               <strong>Dica:</strong> Se você usa uma interface USB (Focusrite, Behringer, Guitar Link, etc.) ou cabo P10/P2, selecione a entrada correspondente na lista acima para captar o som limpo da guitarra.
             </span>
@@ -295,7 +295,7 @@ export const AudioDeviceModal: React.FC = () => {
 
           <button
             onClick={() => setDeviceSelectorOpen(false)}
-            className="px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs transition-all shadow-md shadow-blue-500/20 cursor-pointer"
+            className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-orange-500 to-rose-500 hover:from-orange-400 hover:to-rose-400 text-white font-bold text-xs transition-all shadow-md shadow-orange-500/20 cursor-pointer"
           >
             Concluído
           </button>

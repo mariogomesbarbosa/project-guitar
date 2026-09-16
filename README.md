@@ -1,8 +1,29 @@
-# 🎸 Project Guitar — Plataforma Gamificada para Aprender Violão
+<p align="center">
+  <img src="./public/strumly_banner.jpg" alt="Strumly — Learn by playing" width="100%" style="border-radius: 16px;" />
+</p>
 
-Uma plataforma web interativa e gamificada para aprendizado de violão inspirada no **Rocksmith** e **Guitar Hero**, utilizando violão de verdade (acústico pelo microfone ou elétrico por interface USB).
+<p align="center">
+  <a href="#-status"><img src="https://img.shields.io/badge/Status-🚧%20Em%20Construção%20(WIP)-FF5722?style=for-the-badge" alt="Em Construção" /></a>
+  <img src="https://img.shields.io/badge/Versão-0.1.0--alpha-7C3AED?style=for-the-badge" alt="Versão" />
+  <img src="https://img.shields.io/badge/React_19-20232A?style=for-the-badge&logo=react&logoColor=61DAFB" alt="React 19" />
+  <img src="https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white" alt="TypeScript" />
+  <img src="https://img.shields.io/badge/Three.js-3D_WebGL-black?style=for-the-badge&logo=three.js&logoColor=white" alt="Three.js" />
+  <img src="https://img.shields.io/badge/Audio_DSP-YIN_Pitch_Detector-10B981?style=for-the-badge" alt="Web Audio DSP" />
+  <img src="https://img.shields.io/badge/Tailwind_CSS_v4-06B6D4?style=for-the-badge&logo=tailwindcss&logoColor=white" alt="Tailwind CSS" />
+  <img src="https://img.shields.io/badge/Licença-MIT-F59E0B?style=for-the-badge" alt="Licença MIT" />
+</p>
 
 ---
+
+> [!WARNING]
+> ### 🚧 Projeto em Construção (Work in Progress)
+> O **Strumly** está em fase ativa de desenvolvimento e calibração. Estamos refinando a detecção por pitch DSP para mais timbres de violão acústico e elétrico, além de expandir o catálogo de lições e modos de treino gamificados. Feedbacks e contribuições são super bem-vindos!
+
+---
+
+# 🎸 Strumly — Learn by playing
+
+Uma plataforma web interativa e gamificada para aprendizado de violão inspirada na energia de **Rocksmith** e **Guitar Hero**, utilizando **violão de verdade** (acústico pelo microfone ou elétrico por interface USB/P10).
 
 ## 🌟 Principais Funcionalidades
 
