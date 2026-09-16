@@ -100,8 +100,9 @@ function SceneController() {
  * 3D Highway Grid extending deep into the background (Z < 0).
  */
 function HighwayGrid() {
-  const { totalFrets, neckLength } = FRETBOARD_CONFIG;
+  const { totalFrets, neckLength, neckWidth } = FRETBOARD_CONFIG;
   const highwayDepth = 28.0;
+  const floorY = -neckWidth / 2 - 0.15; // Positioned safely below all 6 strings and the fretboard
 
   // Longitudinal guidelines corresponding to each fret column
   const fretLines = useMemo(() => {
@@ -112,49 +113,73 @@ function HighwayGrid() {
     return lines;
   }, [totalFrets, neckLength]);
 
+  const stringIndices = [6, 5, 4, 3, 2, 1];
+
   return (
-    <group position={[0, -0.05, -highwayDepth / 2]}>
-      {/* Highway Ground Plane with subtle dark gradient reflection */}
-      <mesh rotation={[-Math.PI / 2, 0, 0]}>
-        <planeGeometry args={[neckLength + 2.0, highwayDepth]} />
-        <meshStandardMaterial
-          color="#070b14"
-          roughness={0.4}
-          metalness={0.6}
-        />
-      </mesh>
-
-      {/* Vertical Fret Guidelines extending down the highway */}
-      {fretLines.map((xPos, idx) => (
-        <mesh
-          key={`grid-line-${idx}`}
-          position={[xPos, 0.01, 0]}
-          rotation={[-Math.PI / 2, 0, 0]}
-        >
-          <planeGeometry args={[0.02, highwayDepth]} />
-          <meshBasicMaterial
-            color="#334155"
-            transparent
-            opacity={0.35}
+    <group>
+      {/* Highway Ground Plane with subtle dark reflection beneath the neck */}
+      <group position={[0, floorY, -highwayDepth / 2]}>
+        <mesh rotation={[-Math.PI / 2, 0, 0]}>
+          <planeGeometry args={[neckLength + 2.0, highwayDepth]} />
+          <meshStandardMaterial
+            color="#050811"
+            roughness={0.3}
+            metalness={0.7}
           />
         </mesh>
-      ))}
 
-      {/* Lateral Beat/Measure Lines moving with depth */}
-      {Array.from({ length: 8 }).map((_, i) => (
-        <mesh
-          key={`beat-bar-${i}`}
-          position={[0, 0.02, (i - 3.5) * 3.5]}
-          rotation={[-Math.PI / 2, 0, 0]}
-        >
-          <planeGeometry args={[neckLength, 0.03]} />
-          <meshBasicMaterial
-            color="#475569"
-            transparent
-            opacity={0.25}
-          />
-        </mesh>
-      ))}
+        {/* Vertical Fret Guidelines extending down the highway */}
+        {fretLines.map((xPos, idx) => (
+          <mesh
+            key={`grid-line-${idx}`}
+            position={[xPos, 0.01, 0]}
+            rotation={[-Math.PI / 2, 0, 0]}
+          >
+            <planeGeometry args={[0.02, highwayDepth]} />
+            <meshBasicMaterial
+              color="#38bdf8"
+              transparent
+              opacity={0.25}
+            />
+          </mesh>
+        ))}
+
+        {/* Lateral Beat/Measure Lines moving with depth */}
+        {Array.from({ length: 8 }).map((_, i) => (
+          <mesh
+            key={`beat-bar-${i}`}
+            position={[0, 0.02, (i - 3.5) * 3.5]}
+            rotation={[-Math.PI / 2, 0, 0]}
+          >
+            <planeGeometry args={[neckLength, 0.025]} />
+            <meshBasicMaterial
+              color="#64748b"
+              transparent
+              opacity={0.25}
+            />
+          </mesh>
+        ))}
+      </group>
+
+      {/* Faint string laser guide ribbons running through the 3D highway tunnel */}
+      {stringIndices.map((idx) => {
+        const posY = getStringYPosition(idx);
+        const visual = STRING_VISUALS[idx];
+        return (
+          <mesh
+            key={`string-guide-${idx}`}
+            position={[0, posY, -highwayDepth / 2]}
+            rotation={[-Math.PI / 2, 0, 0]}
+          >
+            <planeGeometry args={[neckLength, 0.008]} />
+            <meshBasicMaterial
+              color={visual.color}
+              transparent
+              opacity={0.16}
+            />
+          </mesh>
+        );
+      })}
     </group>
   );
 }
@@ -180,41 +205,57 @@ function FretboardBody() {
 
   return (
     <group position={[0, 0, 0]}>
-      {/* Madeira Nobre do Braço (Rosewood Plank) - Face frontal exatamente em Z = 0 */}
+      {/* Madeira Nobre do Braço Translúcida Estilo Rocksmith - Face frontal exatamente em Z = 0 */}
       <mesh
         position={[0, 0, -neckThickness / 2]}
-        receiveShadow
+        renderOrder={10}
       >
         <boxGeometry args={[neckLength + 0.8, neckWidth, neckThickness]} />
         <meshStandardMaterial
-          color="#38251e"
-          roughness={0.55}
-          metalness={0.08}
+          color="#0e131f"
+          roughness={0.25}
+          metalness={0.2}
+          transparent
+          opacity={0.32}
+          depthWrite={false}
+          side={THREE.FrontSide}
         />
       </mesh>
 
-      {/* Friso Lateral Superior Marfim (Binding) */}
-      <mesh position={[0, neckWidth / 2 + 0.02, -neckThickness / 2]}>
-        <boxGeometry args={[neckLength + 0.8, 0.05, neckThickness]} />
+      {/* Friso Lateral Superior (Binding) Translúcido */}
+      <mesh
+        position={[0, neckWidth / 2 + 0.02, -neckThickness / 2]}
+        renderOrder={10}
+      >
+        <boxGeometry args={[neckLength + 0.8, 0.04, neckThickness]} />
         <meshStandardMaterial
-          color="#fef3c7"
+          color="#94a3b8"
           roughness={0.3}
-          metalness={0.1}
+          metalness={0.4}
+          transparent
+          opacity={0.6}
+          depthWrite={false}
         />
       </mesh>
 
-      {/* Friso Lateral Inferior Marfim (Binding) */}
-      <mesh position={[0, -neckWidth / 2 - 0.02, -neckThickness / 2]}>
-        <boxGeometry args={[neckLength + 0.8, 0.05, neckThickness]} />
+      {/* Friso Lateral Inferior (Binding) Translúcido */}
+      <mesh
+        position={[0, -neckWidth / 2 - 0.02, -neckThickness / 2]}
+        renderOrder={10}
+      >
+        <boxGeometry args={[neckLength + 0.8, 0.04, neckThickness]} />
         <meshStandardMaterial
-          color="#fef3c7"
+          color="#94a3b8"
           roughness={0.3}
-          metalness={0.1}
+          metalness={0.4}
+          transparent
+          opacity={0.6}
+          depthWrite={false}
         />
       </mesh>
 
       {/* Pestana (Nut) no Traste 0 em osso sintético */}
-      <mesh position={[nutX, 0, 0.06]}>
+      <mesh position={[nutX, 0, 0.06]} renderOrder={10}>
         <boxGeometry args={[0.12, neckWidth + 0.02, 0.14]} />
         <meshStandardMaterial
           color="#f8fafc"
@@ -228,17 +269,20 @@ function FretboardBody() {
         <mesh
           key={`fret-bar-${idx + 1}`}
           position={[xPos, 0, 0.035]}
+          renderOrder={12}
         >
-          <cylinderGeometry args={[0.032, 0.032, neckWidth, 16]} />
+          <cylinderGeometry args={[0.028, 0.028, neckWidth, 16]} />
           <meshStandardMaterial
             color="#f8fafc"
             metalness={0.96}
             roughness={0.12}
+            emissive="#94a3b8"
+            emissiveIntensity={0.15}
           />
         </mesh>
       ))}
 
-      {/* Inlays de Madrepérola nas casas 3, 5, 7, 9 - Em Z = 0.008 */}
+      {/* Inlays de Madrepérola nas casas 3, 5, 7, 9 - Translúcidos para não ocultar notas */}
       {singleDotFrets.map((fretNum) => {
         const xPos = getFretCenterPosition(fretNum, totalFrets, neckLength);
         return (
@@ -246,12 +290,16 @@ function FretboardBody() {
             key={`dot-${fretNum}`}
             position={[xPos, 0, 0.008]}
             rotation={[-Math.PI / 2, 0, 0]}
+            renderOrder={11}
           >
             <cylinderGeometry args={[0.13, 0.13, 0.015, 24]} />
             <meshStandardMaterial
-              color="#f1f5f9"
+              color="#cbd5e1"
               roughness={0.2}
               metalness={0.5}
+              transparent
+              opacity={0.45}
+              depthWrite={false}
             />
           </mesh>
         );
@@ -268,23 +316,31 @@ function FretboardBody() {
             <mesh
               position={[0, 0.52, 0]}
               rotation={[-Math.PI / 2, 0, 0]}
+              renderOrder={11}
             >
               <cylinderGeometry args={[0.11, 0.11, 0.015, 24]} />
               <meshStandardMaterial
-                color="#f1f5f9"
+                color="#cbd5e1"
                 roughness={0.2}
                 metalness={0.5}
+                transparent
+                opacity={0.45}
+                depthWrite={false}
               />
             </mesh>
             <mesh
               position={[0, -0.52, 0]}
               rotation={[-Math.PI / 2, 0, 0]}
+              renderOrder={11}
             >
               <cylinderGeometry args={[0.11, 0.11, 0.015, 24]} />
               <meshStandardMaterial
-                color="#f1f5f9"
+                color="#cbd5e1"
                 roughness={0.2}
                 metalness={0.5}
+                transparent
+                opacity={0.45}
+                depthWrite={false}
               />
             </mesh>
           </group>
@@ -550,6 +606,30 @@ function LessonHighwayNotes() {
   );
 }
 
+const noteFretTextureCache = new Map<number, THREE.CanvasTexture>();
+
+function getNoteFretTexture(fret: number): THREE.CanvasTexture {
+  if (noteFretTextureCache.has(fret)) {
+    return noteFretTextureCache.get(fret)!;
+  }
+  const canvas = document.createElement('canvas');
+  canvas.width = 64;
+  canvas.height = 64;
+  const ctx = canvas.getContext('2d');
+  if (ctx) {
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, 64, 64);
+    ctx.fillStyle = '#0f172a';
+    ctx.font = '900 44px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(fret.toString(), 32, 34);
+  }
+  const tex = new THREE.CanvasTexture(canvas);
+  noteFretTextureCache.set(fret, tex);
+  return tex;
+}
+
 interface HighwayNoteBlockProps {
   note: { stringIndex: number; fret: number; noteName: string; octave: number; durationBeats?: number };
   targetZ: number;
@@ -564,6 +644,7 @@ function HighwayNoteBlock({ note, targetZ, isCurrent, isRealtime }: HighwayNoteB
   const posX = getFretCenterPosition(note.fret);
   const posY = getStringYPosition(note.stringIndex);
   const isOpenString = note.fret === 0;
+  const fretTex = useMemo(() => (!isOpenString ? getNoteFretTexture(note.fret) : null), [note.fret, isOpenString]);
 
   // Realtime: direct sync per frame. Guided: smooth damp interpolation
   useFrame((_, delta) => {
@@ -587,8 +668,8 @@ function HighwayNoteBlock({ note, targetZ, isCurrent, isRealtime }: HighwayNoteB
     >
       {isOpenString ? (
         // Open String: Luminous glowing rectangular hoop
-        <group>
-          <mesh>
+        <group renderOrder={5}>
+          <mesh renderOrder={5}>
             <boxGeometry args={[0.56, 0.28, 0.2]} />
             <meshStandardMaterial
               color={color}
@@ -598,15 +679,15 @@ function HighwayNoteBlock({ note, targetZ, isCurrent, isRealtime }: HighwayNoteB
               metalness={0.8}
             />
           </mesh>
-          <mesh>
+          <mesh renderOrder={5}>
             <boxGeometry args={[0.42, 0.16, 0.24]} />
             <meshBasicMaterial color="#ffffff" />
           </mesh>
         </group>
       ) : (
-        // Fretted Note: 3D block with fret number badge
-        <group>
-          <mesh castShadow>
+        // Fretted Note: 3D block with printed fret number badge
+        <group renderOrder={5}>
+          <mesh castShadow renderOrder={5}>
             <boxGeometry args={[0.62, 0.3, 0.26]} />
             <meshStandardMaterial
               color={color}
@@ -618,15 +699,19 @@ function HighwayNoteBlock({ note, targetZ, isCurrent, isRealtime }: HighwayNoteB
           </mesh>
 
           {/* White core strip */}
-          <mesh position={[0, 0.13, 0]}>
+          <mesh position={[0, 0.13, 0]} renderOrder={5}>
             <boxGeometry args={[0.58, 0.04, 0.24]} />
             <meshBasicMaterial color="#ffffff" />
           </mesh>
 
-          {/* Fret number plate */}
-          <mesh position={[0, 0, 0.14]}>
-            <planeGeometry args={[0.45, 0.24]} />
-            <meshBasicMaterial color="#ffffff" />
+          {/* Fret number plate with number */}
+          <mesh position={[0, 0, 0.14]} renderOrder={6}>
+            <planeGeometry args={[0.42, 0.22]} />
+            {fretTex ? (
+              <meshBasicMaterial map={fretTex} />
+            ) : (
+              <meshBasicMaterial color="#ffffff" />
+            )}
           </mesh>
         </group>
       )}
