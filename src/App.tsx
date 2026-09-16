@@ -252,7 +252,7 @@ export const App: React.FC = () => {
       )}
 
       {/* MAIN VIEWPORT CONTAINER */}
-      <main className="relative flex-1 w-full h-full overflow-hidden">
+      <main className="relative flex-1 w-full min-h-0 overflow-hidden">
         {/* Mode: Home / Lesson Catalog */}
         {mode === 'home' && <LessonSelect />}
 
