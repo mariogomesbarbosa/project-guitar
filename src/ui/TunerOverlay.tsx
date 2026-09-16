@@ -2,14 +2,13 @@ import React, { useMemo } from 'react';
 import { useGameStore } from '../store/useGameStore.ts';
 import { GUITAR_STRING_STYLES } from '../lessons/types.ts';
 import { Mic, MicOff, Volume2, ArrowLeft, Zap, CheckCircle2 } from 'lucide-react';
-import { audioEngine } from '../audio/AudioEngine.ts';
 
 export const TunerOverlay: React.FC = () => {
   const {
     currentPitch,
     micRms,
     isMicActive,
-    setMicActive,
+    setDeviceSelectorOpen,
     targetTunerString,
     setTargetTunerString,
     setMode,
@@ -76,18 +75,8 @@ export const TunerOverlay: React.FC = () => {
     };
   }, [currentPitch, activeString]);
 
-  const toggleMic = async () => {
-    try {
-      if (isMicActive) {
-        await audioEngine.stop();
-        setMicActive(false);
-      } else {
-        await audioEngine.start();
-        setMicActive(true);
-      }
-    } catch (err) {
-      console.error('Failed to toggle audio engine:', err);
-    }
+  const toggleMic = () => {
+    setDeviceSelectorOpen(true);
   };
 
   // Needle angle for analog meter (-50 cents = -45 deg, +50 cents = +45 deg)

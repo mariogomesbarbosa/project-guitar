@@ -21,6 +21,8 @@ export interface GameState {
 
   // Audio & Microphone
   isMicActive: boolean;
+  selectedMicDeviceId: string | null;
+  isDeviceSelectorOpen: boolean;
   micRms: number;
   noiseFloor: number;
   sensitivity: number; // 0.5 to 2.0
@@ -52,6 +54,8 @@ export interface GameState {
   setPlaybackTime: (time: number) => void;
   advanceTime: (delta: number) => void;
   setMicActive: (active: boolean) => void;
+  setSelectedMicDeviceId: (deviceId: string | null) => void;
+  setDeviceSelectorOpen: (open: boolean) => void;
   setSensitivity: (val: number) => void;
   setTargetTunerString: (str: number | null) => void;
   updatePitch: (pitch: DetectedPitch | null, rms?: number) => void;
@@ -81,6 +85,8 @@ export const useGameStore = create<GameState>((set, get) => ({
 
   // Audio defaults
   isMicActive: false,
+  selectedMicDeviceId: null,
+  isDeviceSelectorOpen: false,
   micRms: 0,
   noiseFloor: 0.008,
   sensitivity: 1.0,
@@ -116,6 +122,10 @@ export const useGameStore = create<GameState>((set, get) => ({
     set((state) => ({ playbackTime: Math.max(0, state.playbackTime + delta) })),
 
   setMicActive: (active) => set({ isMicActive: active }),
+
+  setSelectedMicDeviceId: (deviceId) => set({ selectedMicDeviceId: deviceId }),
+
+  setDeviceSelectorOpen: (open) => set({ isDeviceSelectorOpen: open }),
 
   setSensitivity: (val) => set({ sensitivity: Math.max(0.2, Math.min(3.0, val)) }),
 
