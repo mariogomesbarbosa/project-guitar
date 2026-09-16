@@ -1,0 +1,120 @@
+import type { Lesson } from './types.ts';
+
+export const SAMPLE_LESSONS: Lesson[] = [
+  {
+    id: 'lesson-1-open-strings',
+    title: '1. Cordas Soltas Básicas',
+    subtitle: 'Calibração de ouvido e ritmo',
+    description: 'Toque cada corda solta (sem pressionar trastes), da 6ª corda mais grossa (Mi) até a 1ª mais fina (Mi agudo).',
+    category: 'strings',
+    difficulty: 'beginner',
+    bpm: 70,
+    timeSignature: [4, 4],
+    tip: 'Mantenha o polegar atrás do braço do violão e toque com firmeza perto da boca ou captador.',
+    estimatedDurationSec: 45,
+    notes: [
+      { id: 'l1-n1', stringIndex: 6, fret: 0, noteName: 'E', octave: 2, fullLabel: 'E2', beat: 1, durationBeats: 2 },
+      { id: 'l1-n2', stringIndex: 6, fret: 0, noteName: 'E', octave: 2, fullLabel: 'E2', beat: 3, durationBeats: 2 },
+      { id: 'l1-n3', stringIndex: 5, fret: 0, noteName: 'A', octave: 2, fullLabel: 'A2', beat: 5, durationBeats: 2 },
+      { id: 'l1-n4', stringIndex: 5, fret: 0, noteName: 'A', octave: 2, fullLabel: 'A2', beat: 7, durationBeats: 2 },
+      { id: 'l1-n5', stringIndex: 4, fret: 0, noteName: 'D', octave: 3, fullLabel: 'D3', beat: 9, durationBeats: 2 },
+      { id: 'l1-n6', stringIndex: 4, fret: 0, noteName: 'D', octave: 3, fullLabel: 'D3', beat: 11, durationBeats: 2 },
+      { id: 'l1-n7', stringIndex: 3, fret: 0, noteName: 'G', octave: 3, fullLabel: 'G3', beat: 13, durationBeats: 2 },
+      { id: 'l1-n8', stringIndex: 3, fret: 0, noteName: 'G', octave: 3, fullLabel: 'G3', beat: 15, durationBeats: 2 },
+      { id: 'l1-n9', stringIndex: 2, fret: 0, noteName: 'B', octave: 3, fullLabel: 'B3', beat: 17, durationBeats: 2 },
+      { id: 'l1-n10', stringIndex: 2, fret: 0, noteName: 'B', octave: 3, fullLabel: 'B3', beat: 19, durationBeats: 2 },
+      { id: 'l1-n11', stringIndex: 1, fret: 0, noteName: 'E', octave: 4, fullLabel: 'E4', beat: 21, durationBeats: 2 },
+      { id: 'l1-n12', stringIndex: 1, fret: 0, noteName: 'E', octave: 4, fullLabel: 'E4', beat: 23, durationBeats: 2 },
+    ],
+  },
+  {
+    id: 'lesson-2-first-frets',
+    title: '2. Primeiros Trastes (1-2-3)',
+    subtitle: 'Coordenação e independência dos dedos',
+    description: 'Pratique a digitação dos trastes 1, 2 e 3 com os dedos indicador, médio e anelar na 6ª e 5ª corda.',
+    category: 'frets',
+    difficulty: 'beginner',
+    bpm: 75,
+    timeSignature: [4, 4],
+    tip: 'Pressione com a ponta dos dedos bem perto do traste metálico para obter som limpo sem trastejar.',
+    estimatedDurationSec: 60,
+    notes: [
+      // 6ª Corda: 1, 2, 3
+      { id: 'l2-n1', stringIndex: 6, fret: 1, noteName: 'F', octave: 2, fullLabel: 'F2', beat: 1, durationBeats: 2, finger: 1 },
+      { id: 'l2-n2', stringIndex: 6, fret: 2, noteName: 'F#', octave: 2, fullLabel: 'F#2', beat: 3, durationBeats: 2, finger: 2 },
+      { id: 'l2-n3', stringIndex: 6, fret: 3, noteName: 'G', octave: 2, fullLabel: 'G2', beat: 5, durationBeats: 2, finger: 3 },
+      { id: 'l2-n4', stringIndex: 6, fret: 0, noteName: 'E', octave: 2, fullLabel: 'E2', beat: 7, durationBeats: 2 },
+      // 5ª Corda: 1, 2, 3
+      { id: 'l2-n5', stringIndex: 5, fret: 1, noteName: 'A#', octave: 2, fullLabel: 'A#2', beat: 9, durationBeats: 2, finger: 1 },
+      { id: 'l2-n6', stringIndex: 5, fret: 2, noteName: 'B', octave: 2, fullLabel: 'B2', beat: 11, durationBeats: 2, finger: 2 },
+      { id: 'l2-n7', stringIndex: 5, fret: 3, noteName: 'C', octave: 3, fullLabel: 'C3', beat: 13, durationBeats: 2, finger: 3 },
+      { id: 'l2-n8', stringIndex: 5, fret: 0, noteName: 'A', octave: 2, fullLabel: 'A2', beat: 15, durationBeats: 2 },
+      // Repetição dinâmica
+      { id: 'l2-n9', stringIndex: 6, fret: 3, noteName: 'G', octave: 2, fullLabel: 'G2', beat: 17, durationBeats: 2, finger: 3 },
+      { id: 'l2-n10', stringIndex: 6, fret: 2, noteName: 'F#', octave: 2, fullLabel: 'F#2', beat: 19, durationBeats: 2, finger: 2 },
+      { id: 'l2-n11', stringIndex: 6, fret: 1, noteName: 'F', octave: 2, fullLabel: 'F2', beat: 21, durationBeats: 2, finger: 1 },
+      { id: 'l2-n12', stringIndex: 6, fret: 0, noteName: 'E', octave: 2, fullLabel: 'E2', beat: 23, durationBeats: 2 },
+    ],
+  },
+  {
+    id: 'lesson-3-first-riff',
+    title: '3. Primeiro Riff (Smoke on the Water)',
+    subtitle: 'O riff mais famoso da história do Rock',
+    description: 'Aprenda o motivo lendário na 6ª corda grave com transições entre a corda solta, traste 3 e traste 5.',
+    category: 'riffs',
+    difficulty: 'intermediate',
+    bpm: 85,
+    timeSignature: [4, 4],
+    tip: 'Sinta o groove! Toque a nota solta, deslize o dedo 1 para a casa 3 e use o dedo 3 na casa 5.',
+    estimatedDurationSec: 75,
+    notes: [
+      // Frase 1: 0 - 3 - 5
+      { id: 'l3-n1', stringIndex: 6, fret: 0, noteName: 'E', octave: 2, fullLabel: 'E2', beat: 1, durationBeats: 2 },
+      { id: 'l3-n2', stringIndex: 6, fret: 3, noteName: 'G', octave: 2, fullLabel: 'G2', beat: 3, durationBeats: 2, finger: 1 },
+      { id: 'l3-n3', stringIndex: 6, fret: 5, noteName: 'A', octave: 2, fullLabel: 'A2', beat: 5, durationBeats: 3, finger: 3 },
+      // Frase 2: 0 - 3 - 6 - 5
+      { id: 'l3-n4', stringIndex: 6, fret: 0, noteName: 'E', octave: 2, fullLabel: 'E2', beat: 9, durationBeats: 2 },
+      { id: 'l3-n5', stringIndex: 6, fret: 3, noteName: 'G', octave: 2, fullLabel: 'G2', beat: 11, durationBeats: 2, finger: 1 },
+      { id: 'l3-n6', stringIndex: 6, fret: 6, noteName: 'A#', octave: 2, fullLabel: 'A#2', beat: 13, durationBeats: 1, finger: 4 },
+      { id: 'l3-n7', stringIndex: 6, fret: 5, noteName: 'A', octave: 2, fullLabel: 'A2', beat: 14, durationBeats: 3, finger: 3 },
+      // Frase 3: 0 - 3 - 5 - 3 - 0
+      { id: 'l3-n8', stringIndex: 6, fret: 0, noteName: 'E', octave: 2, fullLabel: 'E2', beat: 18, durationBeats: 2 },
+      { id: 'l3-n9', stringIndex: 6, fret: 3, noteName: 'G', octave: 2, fullLabel: 'G2', beat: 20, durationBeats: 2, finger: 1 },
+      { id: 'l3-n10', stringIndex: 6, fret: 5, noteName: 'A', octave: 2, fullLabel: 'A2', beat: 22, durationBeats: 2, finger: 3 },
+      { id: 'l3-n11', stringIndex: 6, fret: 3, noteName: 'G', octave: 2, fullLabel: 'G2', beat: 24, durationBeats: 2, finger: 1 },
+      { id: 'l3-n12', stringIndex: 6, fret: 0, noteName: 'E', octave: 2, fullLabel: 'E2', beat: 26, durationBeats: 4 },
+    ],
+  },
+  {
+    id: 'lesson-4-intro-chords',
+    title: '4. Acordes Introdutórios (Em & Asus2)',
+    subtitle: 'Os dois acordes fundamentais da música',
+    description: 'Aprenda Mi Menor (Em) e Lá Suspenso 2 (Asus2) em formato de arpejo nota a nota para garantir que todas as cordas soem limpas.',
+    category: 'chords',
+    difficulty: 'intermediate',
+    bpm: 80,
+    timeSignature: [4, 4],
+    tip: 'Curvar as falanges dos dedos é o segredo para não abafar as cordas vizinhas soltas.',
+    estimatedDurationSec: 90,
+    notes: [
+      // Acorde Em arpejado
+      { id: 'l4-n1', stringIndex: 6, fret: 0, noteName: 'E', octave: 2, fullLabel: 'E2', beat: 1, durationBeats: 1, chordName: 'Em' },
+      { id: 'l4-n2', stringIndex: 5, fret: 2, noteName: 'B', octave: 2, fullLabel: 'B2', beat: 2, durationBeats: 1, chordName: 'Em', finger: 2 },
+      { id: 'l4-n3', stringIndex: 4, fret: 2, noteName: 'E', octave: 3, fullLabel: 'E3', beat: 3, durationBeats: 1, chordName: 'Em', finger: 3 },
+      { id: 'l4-n4', stringIndex: 3, fret: 0, noteName: 'G', octave: 3, fullLabel: 'G3', beat: 4, durationBeats: 1, chordName: 'Em' },
+      { id: 'l4-n5', stringIndex: 2, fret: 0, noteName: 'B', octave: 3, fullLabel: 'B3', beat: 5, durationBeats: 1, chordName: 'Em' },
+      { id: 'l4-n6', stringIndex: 1, fret: 0, noteName: 'E', octave: 4, fullLabel: 'E4', beat: 6, durationBeats: 2, chordName: 'Em' },
+
+      // Transição para Asus2 arpejado
+      { id: 'l4-n7', stringIndex: 5, fret: 0, noteName: 'A', octave: 2, fullLabel: 'A2', beat: 9, durationBeats: 1, chordName: 'Asus2' },
+      { id: 'l4-n8', stringIndex: 4, fret: 2, noteName: 'E', octave: 3, fullLabel: 'E3', beat: 10, durationBeats: 1, chordName: 'Asus2', finger: 2 },
+      { id: 'l4-n9', stringIndex: 3, fret: 2, noteName: 'A', octave: 3, fullLabel: 'A3', beat: 11, durationBeats: 1, chordName: 'Asus2', finger: 3 },
+      { id: 'l4-n10', stringIndex: 2, fret: 0, noteName: 'B', octave: 3, fullLabel: 'B3', beat: 12, durationBeats: 1, chordName: 'Asus2' },
+      { id: 'l4-n11', stringIndex: 1, fret: 0, noteName: 'E', octave: 4, fullLabel: 'E4', beat: 13, durationBeats: 2, chordName: 'Asus2' },
+
+      // Final Em marcante
+      { id: 'l4-n12', stringIndex: 6, fret: 0, noteName: 'E', octave: 2, fullLabel: 'E2', beat: 17, durationBeats: 2, chordName: 'Em' },
+      { id: 'l4-n13', stringIndex: 1, fret: 0, noteName: 'E', octave: 4, fullLabel: 'E4', beat: 19, durationBeats: 2, chordName: 'Em' },
+    ],
+  },
+];
