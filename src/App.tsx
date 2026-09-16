@@ -30,10 +30,49 @@ export const App: React.FC = () => {
     getCurrentNote,
     isPlaying,
     isPaused,
+    playMode,
+    advanceTime,
+    currentLesson,
   } = useGameStore();
 
   const lastNoteHitTimeRef = useRef<number>(0);
   const [showSettings, setShowSettings] = React.useState(false);
+
+  // Realtime playback loop: advances timeline and automatically detects missed notes
+  useEffect(() => {
+    if (mode !== 'gameplay' || !isPlaying || isPaused || playMode !== 'realtime') {
+      return;
+    }
+
+    let lastFrameTime = performance.now();
+    let animId: number;
+
+    const loop = (now: number) => {
+      const deltaSec = (now - lastFrameTime) / 1000;
+      lastFrameTime = now;
+
+      // Advance song playback clock
+      advanceTime(deltaSec);
+
+      // Check if current target note passed beyond hit window (Miss check)
+      const currentTarget = getCurrentNote();
+      if (currentTarget && currentLesson) {
+        const bpm = currentLesson.bpm || 75;
+        const expectedTimeSec = (currentTarget.beat * 60) / bpm;
+        const currentPlayback = useGameStore.getState().playbackTime;
+
+        // If note passed more than 160ms beyond strike line, it's a Miss
+        if (currentPlayback > expectedTimeSec + 0.16) {
+          recordHit('miss', `${currentTarget.noteName}${currentTarget.octave}`, 0);
+        }
+      }
+
+      animId = requestAnimationFrame(loop);
+    };
+
+    animId = requestAnimationFrame(loop);
+    return () => cancelAnimationFrame(animId);
+  }, [mode, isPlaying, isPaused, playMode, advanceTime, getCurrentNote, currentLesson, recordHit]);
 
   // Subscribe AudioEngine to GameStore
   useEffect(() => {
@@ -48,14 +87,14 @@ export const App: React.FC = () => {
         isPlaying &&
         !isPaused &&
         pitch &&
-        pitch.clarity >= 0.78
+        pitch.clarity >= 0.76
       ) {
         const currentTarget = getCurrentNote();
         if (!currentTarget) return;
 
         const now = Date.now();
-        // 350ms debounce to prevent multiple triggers from harmonic ringing
-        if (now - lastNoteHitTimeRef.current < 350) return;
+        // 300ms debounce to prevent multiple triggers from harmonic ringing
+        if (now - lastNoteHitTimeRef.current < 300) return;
 
         // Check note match
         const isNoteMatch =
@@ -63,11 +102,29 @@ export const App: React.FC = () => {
 
         if (isNoteMatch) {
           lastNoteHitTimeRef.current = now;
-          const absCents = Math.abs(pitch.cents);
-          if (absCents <= 15) {
-            recordHit('perfect', `${pitch.noteName}${pitch.octave}`, pitch.cents);
+
+          if (playMode === 'realtime' && currentLesson) {
+            const bpm = currentLesson.bpm || 75;
+            const expectedTimeSec = (currentTarget.beat * 60) / bpm;
+            const currentPlayback = useGameStore.getState().playbackTime;
+            const timeDelta = currentPlayback - expectedTimeSec;
+
+            // If note is still too far ahead, ignore
+            if (timeDelta < -0.28) return;
+
+            if (Math.abs(timeDelta) <= 0.08) {
+              recordHit('perfect', `${pitch.noteName}${pitch.octave}`, pitch.cents);
+            } else if (Math.abs(timeDelta) <= 0.18) {
+              recordHit('good', `${pitch.noteName}${pitch.octave}`, pitch.cents);
+            }
           } else {
-            recordHit('good', `${pitch.noteName}${pitch.octave}`, pitch.cents);
+            // Guided Mode: evaluates pitch accuracy
+            const absCents = Math.abs(pitch.cents);
+            if (absCents <= 15) {
+              recordHit('perfect', `${pitch.noteName}${pitch.octave}`, pitch.cents);
+            } else {
+              recordHit('good', `${pitch.noteName}${pitch.octave}`, pitch.cents);
+            }
           }
         }
       }
@@ -82,7 +139,7 @@ export const App: React.FC = () => {
       unsubPitch();
       unsubState();
     };
-  }, [mode, isPlaying, isPaused, updatePitch, setMicActive, recordHit, getCurrentNote]);
+  }, [mode, isPlaying, isPaused, playMode, currentLesson, updatePitch, setMicActive, recordHit, getCurrentNote]);
 
   // Toggle mic capture
   const handleToggleMic = async () => {
@@ -108,7 +165,25 @@ export const App: React.FC = () => {
       if (e.code === 'Space' || e.key === 'Enter') {
         e.preventDefault();
         const currentTarget = getCurrentNote();
-        if (currentTarget) {
+        if (!currentTarget) return;
+
+        if (playMode === 'realtime' && currentLesson) {
+          const bpm = currentLesson.bpm || 75;
+          const expectedTimeSec = (currentTarget.beat * 60) / bpm;
+          const currentPlayback = useGameStore.getState().playbackTime;
+          const timeDelta = currentPlayback - expectedTimeSec;
+
+          if (timeDelta < -0.28) return;
+
+          if (Math.abs(timeDelta) <= 0.08) {
+            recordHit('perfect', `${currentTarget.noteName}${currentTarget.octave}`, 0);
+          } else if (Math.abs(timeDelta) <= 0.18) {
+            recordHit('good', `${currentTarget.noteName}${currentTarget.octave}`, 0);
+          } else {
+            recordHit('miss', `${currentTarget.noteName}${currentTarget.octave}`, 0);
+          }
+        } else {
+          // Guided mode
           recordHit('perfect', `${currentTarget.noteName}${currentTarget.octave}`, 0);
         }
       }
@@ -116,7 +191,7 @@ export const App: React.FC = () => {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [mode, isPlaying, isPaused, getCurrentNote, recordHit]);
+  }, [mode, isPlaying, isPaused, playMode, currentLesson, getCurrentNote, recordHit]);
 
   return (
     <div className="relative w-screen h-screen overflow-hidden bg-zinc-950 text-zinc-100 flex flex-col select-none">

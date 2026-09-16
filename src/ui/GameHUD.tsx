@@ -11,6 +11,7 @@ import {
   Target,
   ArrowLeft,
   Music,
+  Zap,
 } from 'lucide-react';
 
 export const GameHUD: React.FC = () => {
@@ -28,6 +29,8 @@ export const GameHUD: React.FC = () => {
     lastFeedback,
     currentPitch,
     micRms,
+    playMode,
+    setPlayMode,
     togglePause,
     restartLesson,
     setMode,
@@ -71,6 +74,34 @@ export const GameHUD: React.FC = () => {
             <div className="text-[11px] text-zinc-400">
               Nota {Math.min(currentNoteIndex + 1, totalNotes)} de {totalNotes}
             </div>
+          </div>
+
+          {/* Mode Switcher Toggle: Guiado vs Tempo Real */}
+          <div className="hidden lg:flex items-center p-1 rounded-xl bg-zinc-900/90 border border-zinc-700/80 backdrop-blur-md shadow-lg">
+            <button
+              onClick={() => setPlayMode('guided')}
+              className={`flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                playMode === 'guided'
+                  ? 'bg-blue-600 text-white shadow-sm'
+                  : 'text-zinc-400 hover:text-zinc-200'
+              }`}
+              title="Modo Guiado: o jogo aguarda você tocar a nota certa para avançar"
+            >
+              <Target className="w-3.5 h-3.5" />
+              <span>Guiado</span>
+            </button>
+            <button
+              onClick={() => setPlayMode('realtime')}
+              className={`flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                playMode === 'realtime'
+                  ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-sm shadow-amber-500/20'
+                  : 'text-zinc-400 hover:text-zinc-200'
+              }`}
+              title="Modo Tempo Real: as notas descem continuamente no ritmo do BPM"
+            >
+              <Zap className="w-3.5 h-3.5" />
+              <span>Tempo Real</span>
+            </button>
           </div>
         </div>
 
