@@ -27,7 +27,7 @@ export function FretboardScene({
     <div className={`relative ${className} pointer-events-none select-none overflow-hidden bg-[#06080d]`}>
       <Canvas
         camera={{
-          position: [0.0, 2.4, 7.6],
+          position: [-5.2, 2.4, 7.6],
           fov: 44,
           near: 0.1,
           far: 60,
@@ -42,26 +42,31 @@ export function FretboardScene({
         <color attach="background" args={['#080a11']} />
         <fog attach="fog" args={['#080a11', 14, 38]} />
 
-        {/* Controlador cinemático de câmera com enquadramento perfeito */}
+        {/* Controlador cinemático de câmera alinhado dinamicamente às notas ativas */}
         <SceneController />
 
-        {/* Iluminação frontal e de palco Rocksmith */}
-        <ambientLight intensity={0.75} />
+        {/* Iluminação frontal e de palco distribuída ao longo de todo o braço */}
+        <ambientLight intensity={0.85} />
         <directionalLight
-          position={[0, 6, 8]}
-          intensity={2.0}
+          position={[-4, 6, 8]}
+          intensity={1.8}
           color="#ffffff"
         />
-        {/* Luz direta sobre o braço para destacar os trastes cromados */}
         <directionalLight
-          position={[0, 2, 10]}
+          position={[2, 6, 8]}
+          intensity={1.2}
+          color="#ffffff"
+        />
+        {/* Luz direta sobre o início do braço e trastes cromados */}
+        <directionalLight
+          position={[-4, 2, 10]}
           intensity={1.2}
           color="#e0e7ff"
         />
         {/* Luzes laterais de recorte neon */}
         <pointLight position={[-9, 3.5, 2]} intensity={2.5} color="#06b6d4" distance={25} />
         <pointLight position={[9, 3.5, 2]} intensity={2.5} color="#ec4899" distance={25} />
-        <pointLight position={[0, -2, 4]} intensity={1.2} color="#3b82f6" distance={15} />
+        <pointLight position={[-3, -2, 4]} intensity={1.2} color="#3b82f6" distance={15} />
 
         {/* Pista 3D (Highway) em profundidade */}
         <HighwayGrid />
@@ -86,13 +91,41 @@ export function FretboardScene({
 }
 
 /**
- * Positions and aims the camera with a slight dynamic lean towards the active fret zone.
+ * Positions and aims the camera dynamically tracking the active target note's fret.
+ * Smoothly pans along the X axis so the beginning of the neck (Nut / Frets 0-3) is fully
+ * visible when playing open strings, and glides along the neck as higher frets are played.
  */
 function SceneController() {
-  useFrame(({ camera }) => {
-    // Alinha a câmera diretamente com a pista e o centro do braço do instrumento
-    camera.lookAt(new THREE.Vector3(0.0, -0.15, -1.2));
+  const currentNote = useGameStore((s) => s.getCurrentNote());
+  const currentCamXRef = useRef(-5.2);
+  const lookAtVecRef = useRef(new THREE.Vector3(-5.2, -0.15, -1.2));
+
+  useFrame(({ camera }, delta) => {
+    // Alinha a câmera diretamente com a nota que deve ser tocada
+    const targetFret = currentNote ? currentNote.fret : 0;
+    const fretCenter = getFretCenterPosition(targetFret);
+
+    // Enquadramento: cordas soltas (fret 0) e casas iniciais ficam confortavelmente visíveis
+    // Clampa entre -5.2 (foco nas casas 0 a 4) e 0.0 (foco na casa 12)
+    const desiredX = THREE.MathUtils.clamp(fretCenter + 2.0, -5.2, 0.0);
+
+    // Movimento suave e cinemático de câmera
+    currentCamXRef.current = THREE.MathUtils.damp(
+      currentCamXRef.current,
+      desiredX,
+      4.5,
+      delta
+    );
+
+    const camX = currentCamXRef.current;
+    camera.position.x = camX;
+    camera.position.y = 2.4;
+    camera.position.z = 7.6;
+
+    lookAtVecRef.current.set(camX, -0.15, -1.2);
+    camera.lookAt(lookAtVecRef.current);
   });
+
   return null;
 }
 
@@ -379,7 +412,7 @@ function FretNumberLabels({
   neckLength: number;
   neckWidth: number;
 }) {
-  const displayFrets = [1, 3, 5, 7, 9, 12];
+  const displayFrets = [0, 1, 3, 5, 7, 9, 12];
 
   // Procedural number textures for the edge
   const textures = useMemo(() => {
@@ -390,7 +423,7 @@ function FretNumberLabels({
       canvas.height = 64;
       const ctx = canvas.getContext('2d');
       if (ctx) {
-        ctx.fillStyle = '#94a3b8';
+        ctx.fillStyle = f === 0 ? '#38bdf8' : '#94a3b8';
         ctx.font = 'bold 44px sans-serif';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
