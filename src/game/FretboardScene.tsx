@@ -1,97 +1,79 @@
 import { Canvas, useFrame } from '@react-three/fiber';
-import { useMemo, useRef } from 'react';
+import { useMemo, useRef, useState, useEffect } from 'react';
 import * as THREE from 'three';
-import { HighwayNotes } from './HighwayNotes.tsx';
-import { HitFeedback } from './HitFeedback.tsx';
+import { useGameStore } from '../store/useGameStore.ts';
 import {
   FRETBOARD_CONFIG,
   getFretCenterPosition,
   getFretXPosition,
   getStringYPosition,
   STRING_VISUALS,
-  type HitFeedbackItem,
-  type LessonNote,
 } from './types.ts';
 
 export interface FretboardSceneProps {
-  notes: readonly LessonNote[];
-  currentTime: number;
-  processedNoteIds: ReadonlySet<string>;
-  hitFeedbacks: HitFeedbackItem[];
-  vibratingStrings?: Record<number, number>; // stringIndex -> vibration timestamp
-  onHitExpired?: (id: string) => void;
   className?: string;
 }
 
 /**
- * Main 3D Rocksmith Fretboard Canvas Scene.
- * Features an angled cinematic camera, authentic 6-string fretboard with inlays,
- * highway guide grid, vibrating strings, notes, and visual hit feedback.
+ * Cena 3D Principal Estilo Rocksmith.
+ * Exibe o braço de violão 3D autêntico com 15 trastes, 6 cordas coloridas neon,
+ * marcadores de madrepérola, túnel da Highway com as notas se aproximando,
+ * alvo iluminado na nota ativa e partículas de impacto.
  */
 export function FretboardScene({
-  notes,
-  currentTime,
-  processedNoteIds,
-  hitFeedbacks,
-  vibratingStrings = {},
-  onHitExpired,
-  className = 'w-full h-full min-h-[480px]',
+  className = 'absolute inset-0 w-full h-full',
 }: FretboardSceneProps) {
   return (
-    <div className={`relative ${className}`}>
+    <div className={`relative ${className} pointer-events-none select-none overflow-hidden bg-[#07090e]`}>
       <Canvas
         camera={{
-          position: [0.5, 4.4, 7.2],
-          fov: 48,
+          position: [0.2, 2.6, 7.8],
+          fov: 46,
           near: 0.1,
-          far: 80,
+          far: 60,
         }}
-        gl={{ antialias: true, alpha: true, powerPreference: 'high-performance' }}
+        gl={{
+          antialias: true,
+          alpha: false,
+          powerPreference: 'high-performance',
+        }}
+        style={{ width: '100%', height: '100%' }}
       >
-        {/* Cinematic Scene Rig & Camera Setup */}
+        <color attach="background" args={['#080a11']} />
+        <fog attach="fog" args={['#080a11', 14, 38]} />
+
+        {/* Controlador cinemático de câmera */}
         <SceneController />
 
-        {/* Ambient & Stage Lights */}
-        <ambientLight intensity={0.45} />
+        {/* Iluminação de Estúdio / Palco Rocksmith */}
+        <ambientLight intensity={0.65} />
         <directionalLight
-          position={[5, 12, 10]}
-          intensity={1.2}
-          castShadow
-          shadow-mapSize-width={1024}
-          shadow-mapSize-height={1024}
+          position={[0, 9, 8]}
+          intensity={1.6}
+          color="#ffffff"
         />
-        <pointLight
-          position={[-6, 4, 3]}
-          intensity={0.8}
-          color="#38bdf8"
-        />
-        <pointLight
-          position={[6, 4, 3]}
-          intensity={0.8}
-          color="#f43f5e"
-        />
+        {/* Luzes laterais de recorte neon */}
+        <pointLight position={[-9, 3.5, 2]} intensity={2.2} color="#06b6d4" distance={20} />
+        <pointLight position={[9, 3.5, 2]} intensity={2.2} color="#ec4899" distance={20} />
+        <pointLight position={[0, -2, 4]} intensity={1.0} color="#3b82f6" distance={15} />
 
-        {/* 3D Highway Perspective Grid */}
+        {/* Pista 3D (Highway) em profundidade */}
         <HighwayGrid />
 
-        {/* 3D Guitar Fretboard, Frets & Inlays */}
+        {/* Braço do Violão 3D, trastes e inlays */}
         <FretboardBody />
 
-        {/* 6 Canonically Colored Strings with Dynamic Vibration */}
-        <GuitarStrings vibratingStrings={vibratingStrings} />
+        {/* 6 Cordas com cores do Rocksmith e física de vibração */}
+        <GuitarStrings />
 
-        {/* Descending 3D Highway Notes */}
-        <HighwayNotes
-          notes={notes}
-          currentTime={currentTime}
-          processedNoteIds={processedNoteIds}
-        />
+        {/* Fila 3D de notas da lição se aproximando do braço */}
+        <LessonHighwayNotes />
 
-        {/* Particle and Shockwave Hit Feedback */}
-        <HitFeedback
-          items={hitFeedbacks}
-          onItemExpired={onHitExpired}
-        />
+        {/* Alvo Luminoso na nota ativa atual */}
+        <ActiveTargetIndicator />
+
+        {/* Efeito de partículas e flashes de impacto */}
+        <HitEffectsManager />
       </Canvas>
     </div>
   );
@@ -385,14 +367,28 @@ function FretNumberLabels({
  * String 4 (D3): Blue (#3b82f6)
  * String 3 (G3): Orange (#f97316)
  * String 2 (B3): Green (#22c55e)
+/**
+ * 6 Vibrating Guitar Strings in Canonical Rocksmith Colors:
+ * String 6 (E2): Red (#ef4444)
+ * String 5 (A2): Yellow (#eab308)
+ * String 4 (D3): Blue (#3b82f6)
+ * String 3 (G3): Orange (#f97316)
+ * String 2 (B3): Green (#22c55e)
  * String 1 (E4): Purple (#a855f7)
  */
-function GuitarStrings({
-  vibratingStrings,
-}: {
-  vibratingStrings: Record<number, number>;
-}) {
+function GuitarStrings() {
   const { neckLength } = FRETBOARD_CONFIG;
+  const lastFeedback = useGameStore((s) => s.lastFeedback);
+  const currentNote = useGameStore((s) => s.getCurrentNote());
+  const [vibratingString, setVibratingString] = useState<{ index: number; time: number } | null>(null);
+
+  // Trigger vibration when hit occurs
+  useEffect(() => {
+    if (lastFeedback && currentNote) {
+      setVibratingString({ index: currentNote.stringIndex, time: performance.now() });
+    }
+  }, [lastFeedback]);
+
   const stringIndices = [6, 5, 4, 3, 2, 1];
 
   return (
@@ -400,7 +396,8 @@ function GuitarStrings({
       {stringIndices.map((idx) => {
         const config = STRING_VISUALS[idx];
         const posY = getStringYPosition(idx);
-        const hitTimestamp = vibratingStrings[idx] ?? 0;
+        const isVibrating = vibratingString?.index === idx;
+        const hitTimestamp = isVibrating ? vibratingString.time : 0;
 
         return (
           <SingleVibratingString
@@ -429,31 +426,27 @@ function SingleVibratingString({ config, length, posY, hitTimestamp }: SingleStr
   useFrame(() => {
     if (!meshRef.current) return;
 
-    // Check string vibration decay
     if (hitTimestamp > 0) {
       const elapsed = (performance.now() - hitTimestamp) / 1000;
       if (elapsed < 0.45) {
-        // High frequency sine wobble decaying exponentially
         const decay = Math.exp(-elapsed * 9.0);
         const wobble = Math.sin(elapsed * 75) * 0.07 * decay;
         meshRef.current.position.y = posY + wobble;
         meshRef.current.scale.y = 1.0 + Math.abs(wobble) * 2.0;
 
-        // Enhance emissive glow when vibrating
         const mat = meshRef.current.material as THREE.MeshStandardMaterial;
         if (mat) {
-          mat.emissiveIntensity = 1.6 + decay * 2.5;
+          mat.emissiveIntensity = 1.8 + decay * 2.5;
         }
         return;
       }
     }
 
-    // Default resting state
     meshRef.current.position.y = posY;
     meshRef.current.scale.y = 1.0;
     const mat = meshRef.current.material as THREE.MeshStandardMaterial;
     if (mat) {
-      mat.emissiveIntensity = 0.7;
+      mat.emissiveIntensity = 0.85;
     }
   });
 
@@ -463,13 +456,257 @@ function SingleVibratingString({ config, length, posY, hitTimestamp }: SingleStr
       position={[0, posY, 0]}
       rotation={[0, 0, Math.PI / 2]}
     >
-      <cylinderGeometry args={[config.thickness, config.thickness, length, 12]} />
+      <cylinderGeometry args={[config.thickness, config.thickness, length, 16]} />
       <meshStandardMaterial
         color={config.color}
         emissive={config.color}
-        emissiveIntensity={0.7}
-        metalness={0.85}
-        roughness={0.25}
+        emissiveIntensity={0.85}
+        metalness={0.8}
+        roughness={0.2}
+      />
+    </mesh>
+  );
+}
+
+/**
+ * 3D Falling Highway Notes for the current lesson.
+ * Displays the current note right at the strike line and upcoming notes traveling down the tunnel.
+ */
+function LessonHighwayNotes() {
+  const { currentLesson, currentNoteIndex } = useGameStore();
+  if (!currentLesson || !currentLesson.notes.length) return null;
+
+  const notes = currentLesson.notes;
+  // Show active note + next 6 notes
+  const visibleIndices: number[] = [];
+  for (let i = currentNoteIndex; i < Math.min(notes.length, currentNoteIndex + 7); i++) {
+    visibleIndices.push(i);
+  }
+
+  return (
+    <group>
+      {visibleIndices.map((idx) => {
+        const note = notes[idx];
+        const offsetIndex = idx - currentNoteIndex;
+        // Distance in Z tunnel: offsetIndex * 3.6 units back
+        const targetZ = -offsetIndex * 3.6;
+
+        return (
+          <HighwayNoteBlock
+            key={`${note.id}-${idx}`}
+            note={note}
+            targetZ={targetZ}
+            isCurrent={offsetIndex === 0}
+          />
+        );
+      })}
+    </group>
+  );
+}
+
+interface HighwayNoteBlockProps {
+  note: { stringIndex: number; fret: number; noteName: string; octave: number; durationBeats?: number };
+  targetZ: number;
+  isCurrent: boolean;
+}
+
+function HighwayNoteBlock({ note, targetZ, isCurrent }: HighwayNoteBlockProps) {
+  const groupRef = useRef<THREE.Group>(null);
+  const visual = STRING_VISUALS[note.stringIndex] ?? STRING_VISUALS[6];
+  const color = visual.color;
+  const posX = getFretCenterPosition(note.fret);
+  const posY = getStringYPosition(note.stringIndex);
+  const isOpenString = note.fret === 0;
+
+  // Smooth slide animation towards targetZ
+  useFrame((_, delta) => {
+    if (!groupRef.current) return;
+    groupRef.current.position.z = THREE.MathUtils.damp(
+      groupRef.current.position.z,
+      targetZ,
+      12,
+      delta
+    );
+  });
+
+  return (
+    <group
+      ref={groupRef}
+      position={[posX, posY, targetZ - 1.5]}
+    >
+      {isOpenString ? (
+        // Open String: Luminous glowing rectangular hoop
+        <group>
+          <mesh>
+            <boxGeometry args={[0.56, 0.28, 0.2]} />
+            <meshStandardMaterial
+              color={color}
+              emissive={color}
+              emissiveIntensity={isCurrent ? 2.5 : 1.4}
+              roughness={0.2}
+              metalness={0.8}
+            />
+          </mesh>
+          <mesh>
+            <boxGeometry args={[0.42, 0.16, 0.24]} />
+            <meshBasicMaterial color="#ffffff" />
+          </mesh>
+        </group>
+      ) : (
+        // Fretted Note: 3D block with fret number badge
+        <group>
+          <mesh castShadow>
+            <boxGeometry args={[0.62, 0.3, 0.26]} />
+            <meshStandardMaterial
+              color={color}
+              emissive={color}
+              emissiveIntensity={isCurrent ? 2.2 : 1.2}
+              roughness={0.2}
+              metalness={0.8}
+            />
+          </mesh>
+
+          {/* White core strip */}
+          <mesh position={[0, 0.13, 0]}>
+            <boxGeometry args={[0.58, 0.04, 0.24]} />
+            <meshBasicMaterial color="#ffffff" />
+          </mesh>
+
+          {/* Fret number plate */}
+          <mesh position={[0, 0, 0.14]}>
+            <planeGeometry args={[0.45, 0.24]} />
+            <meshBasicMaterial color="#ffffff" />
+          </mesh>
+        </group>
+      )}
+    </group>
+  );
+}
+
+/**
+ * Luminous ring spotlight that highlights the exact target fret and string on the fretboard.
+ */
+function ActiveTargetIndicator() {
+  const currentNote = useGameStore((s) => s.getCurrentNote());
+  const ringRef = useRef<THREE.Mesh>(null);
+
+  useFrame(({ clock }) => {
+    if (!ringRef.current) return;
+    const pulse = 1 + Math.sin(clock.getElapsedTime() * 7) * 0.14;
+    ringRef.current.scale.set(pulse, pulse, 1);
+  });
+
+  if (!currentNote) return null;
+
+  const posX = getFretCenterPosition(currentNote.fret);
+  const posY = getStringYPosition(currentNote.stringIndex);
+  const visual = STRING_VISUALS[currentNote.stringIndex] ?? STRING_VISUALS[6];
+
+  return (
+    <group position={[posX, posY, 0.1]}>
+      {/* Outer pulsing ring */}
+      <mesh ref={ringRef}>
+        <ringGeometry args={[0.22, 0.32, 32]} />
+        <meshBasicMaterial
+          color={visual.color}
+          transparent
+          opacity={0.85}
+          side={THREE.DoubleSide}
+        />
+      </mesh>
+
+      {/* Inner bright flare */}
+      <mesh>
+        <circleGeometry args={[0.16, 24]} />
+        <meshBasicMaterial
+          color="#ffffff"
+          transparent
+          opacity={0.7}
+        />
+      </mesh>
+
+      {/* Dynamic spot light casting glow onto the fretboard wood */}
+      <pointLight
+        position={[0, 0, 0.4]}
+        color={visual.color}
+        intensity={2.5}
+        distance={2.5}
+      />
+    </group>
+  );
+}
+
+/**
+ * Particle sparks and shockwave burst when a note is struck accurately.
+ */
+function HitEffectsManager() {
+  const lastFeedback = useGameStore((s) => s.lastFeedback);
+  const currentNote = useGameStore((s) => s.getCurrentNote());
+  const [activeShockwave, setActiveShockwave] = useState<{ x: number; y: number; color: string; time: number } | null>(null);
+
+  useEffect(() => {
+    if (lastFeedback && currentNote && lastFeedback.quality !== 'miss') {
+      const posX = getFretCenterPosition(currentNote.fret);
+      const posY = getStringYPosition(currentNote.stringIndex);
+      const visual = STRING_VISUALS[currentNote.stringIndex] ?? STRING_VISUALS[6];
+      setActiveShockwave({
+        x: posX,
+        y: posY,
+        color: visual.color,
+        time: performance.now(),
+      });
+    }
+  }, [lastFeedback]);
+
+  if (!activeShockwave) return null;
+
+  return (
+    <ShockwaveEffect
+      data={activeShockwave}
+      onComplete={() => setActiveShockwave(null)}
+    />
+  );
+}
+
+function ShockwaveEffect({
+  data,
+  onComplete,
+}: {
+  data: { x: number; y: number; color: string; time: number };
+  onComplete: () => void;
+}) {
+  const meshRef = useRef<THREE.Mesh>(null);
+
+  useFrame(() => {
+    if (!meshRef.current) return;
+    const elapsed = (performance.now() - data.time) / 1000;
+    const progress = elapsed / 0.4;
+
+    if (progress >= 1.0) {
+      onComplete();
+      return;
+    }
+
+    const scale = THREE.MathUtils.lerp(0.2, 2.2, Math.pow(progress, 0.6));
+    meshRef.current.scale.set(scale, scale, 1);
+
+    const mat = meshRef.current.material as THREE.MeshBasicMaterial;
+    if (mat) {
+      mat.opacity = Math.max(0, 1.0 - progress);
+    }
+  });
+
+  return (
+    <mesh
+      ref={meshRef}
+      position={[data.x, data.y, 0.12]}
+    >
+      <ringGeometry args={[0.4, 0.55, 32]} />
+      <meshBasicMaterial
+        color={data.color}
+        transparent
+        opacity={1.0}
+        side={THREE.DoubleSide}
       />
     </mesh>
   );

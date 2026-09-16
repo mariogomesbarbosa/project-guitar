@@ -5,7 +5,7 @@ import { LessonSelect } from './ui/LessonSelect.tsx';
 import { TunerOverlay } from './ui/TunerOverlay.tsx';
 import { GameHUD } from './ui/GameHUD.tsx';
 import { ResultsModal } from './ui/ResultsModal.tsx';
-import { FretboardScene } from './3d/FretboardScene.tsx';
+import { FretboardScene } from './game/FretboardScene.tsx';
 import {
   Guitar,
   Mic,
