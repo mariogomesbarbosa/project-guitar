@@ -5,6 +5,7 @@ import { LessonSelect } from './ui/LessonSelect.tsx';
 import { TunerOverlay } from './ui/TunerOverlay.tsx';
 import { GameHUD } from './ui/GameHUD.tsx';
 import { ResultsModal } from './ui/ResultsModal.tsx';
+import { AudioDeviceModal } from './ui/AudioDeviceModal.tsx';
 import { FretboardScene } from './game/FretboardScene.tsx';
 import {
   Guitar,
@@ -22,6 +23,7 @@ export const App: React.FC = () => {
     setMode,
     isMicActive,
     setMicActive,
+    setDeviceSelectorOpen,
     updatePitch,
     micRms,
     sensitivity,
@@ -141,22 +143,6 @@ export const App: React.FC = () => {
     };
   }, [mode, isPlaying, isPaused, playMode, currentLesson, updatePitch, setMicActive, recordHit, getCurrentNote]);
 
-  // Toggle mic capture
-  const handleToggleMic = async () => {
-    try {
-      if (isMicActive) {
-        await audioEngine.stop();
-        setMicActive(false);
-      } else {
-        await audioEngine.start();
-        setMicActive(true);
-      }
-    } catch (err) {
-      console.error('AudioEngine toggle error:', err);
-      alert('Não foi possível acessar o microfone. Verifique as permissões do navegador.');
-    }
-  };
-
   // Keyboard shortcut fallback for testing gameplay without a real guitar
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -260,14 +246,15 @@ export const App: React.FC = () => {
               </div>
             </div>
 
-            {/* Mic Toggle Button */}
+            {/* Mic Toggle & Device Selector Button */}
             <button
-              onClick={handleToggleMic}
+              onClick={() => setDeviceSelectorOpen(true)}
               className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-2 border transition-all cursor-pointer ${
                 isMicActive
                   ? 'bg-emerald-500/15 text-emerald-400 border-emerald-500/40 hover:bg-emerald-500/25'
                   : 'bg-zinc-900 text-zinc-400 border-zinc-800 hover:text-zinc-200'
               }`}
+              title="Clique para escolher o microfone do sistema operacional"
             >
               {isMicActive ? (
                 <>
@@ -350,6 +337,9 @@ export const App: React.FC = () => {
           </div>
         )}
       </main>
+
+      {/* MODAL DE SELEÇÃO DE DISPOSITIVOS DE ÁUDIO DO SISTEMA OPERACIONAL */}
+      <AudioDeviceModal />
 
       {/* FOOTER HINT FOR GAMEPLAY */}
       {mode === 'gameplay' && (

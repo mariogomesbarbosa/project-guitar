@@ -318,8 +318,32 @@ export class AudioEngine {
     if (!navigator.mediaDevices?.enumerateDevices) {
       return [];
     }
-    const devices = await navigator.mediaDevices.enumerateDevices();
-    return devices.filter((d) => d.kind === 'audioinput');
+
+    try {
+      let devices = await navigator.mediaDevices.enumerateDevices();
+      let audioInputs = devices.filter((d) => d.kind === 'audioinput');
+
+      // Se os nomes dos dispositivos vierem vazios (política de privacidade do navegador antes do primeiro getUserMedia),
+      // solicitamos uma permissão rápida para obter os nomes reais do sistema operacional (Windows, Mac, etc.)
+      const hasLabels = audioInputs.some((d) => d.label && d.label.trim().length > 0);
+      if (!hasLabels && navigator.mediaDevices.getUserMedia) {
+        try {
+          const tempStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+          devices = await navigator.mediaDevices.enumerateDevices();
+          audioInputs = devices.filter((d) => d.kind === 'audioinput');
+          for (const track of tempStream.getTracks()) {
+            track.stop();
+          }
+        } catch (permErr) {
+          console.warn('Permissão de microfone não concedida previamente:', permErr);
+        }
+      }
+
+      return audioInputs;
+    } catch (err) {
+      console.error('Erro ao enumerar dispositivos de áudio:', err);
+      return [];
+    }
   }
 
   private updateState(partial: Partial<AudioEngineState>): void {
