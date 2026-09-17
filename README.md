@@ -10,7 +10,7 @@
   <img src="https://img.shields.io/badge/Three.js-3D_WebGL-black?style=for-the-badge&logo=three.js&logoColor=white" alt="Three.js" />
   <img src="https://img.shields.io/badge/Audio_DSP-YIN_Pitch_Detector-10B981?style=for-the-badge" alt="Web Audio DSP" />
   <img src="https://img.shields.io/badge/Tailwind_CSS_v4-06B6D4?style=for-the-badge&logo=tailwindcss&logoColor=white" alt="Tailwind CSS" />
-  <img src="https://img.shields.io/badge/Licença-MIT-F59E0B?style=for-the-badge" alt="Licença MIT" />
+  <a href="#-licença"><img src="https://img.shields.io/badge/Licença-CC_BY--NC_4.0-E11D48?style=for-the-badge" alt="Licença CC BY-NC 4.0" /></a>
 </p>
 
 ---
@@ -85,4 +85,21 @@ npm run dev
 Abra no navegador em [http://localhost:5173](http://localhost:5173).
 
 > 💡 **Dica de Uso**: Recomendamos fortemente o uso de **fones de ouvido** durante o jogo para evitar que o áudio das caixas de som vaze no microfone gerando falsas detecções (*audio bleed*).
+
+---
+
+## 📄 Licença
+
+Este projeto é distribuído sob os termos da licença **[Creative Commons Attribution-NonCommercial 4.0 International (CC BY-NC 4.0)](./LICENSE)**.
+
+### 🟢 O que você PODE fazer:
+- **Compartilhar e Copiar:** Você tem a liberdade de copiar, reproduzir e redistribuir o código-fonte em qualquer meio ou formato.
+- **Adaptar e Modificar:** Você pode remixar, transformar e criar novos projetos e estudos baseados neste código.
+
+### 🔴 Termos e Restrições OBRIGATÓRIOS:
+- **Atribuição de Créditos (BY):** Você deve obrigatoriamente dar o crédito apropriado ao autor original (**Strumly**), fornecer um link para a licença e indicar se foram feitas alterações no código.
+- **Uso Não Comercial (NC):** É **terminantemente proibido** utilizar este código, o software ou qualquer trabalho derivado para **fins comerciais, lucrativos, produtos pagos ou monetização**, a menos que haja autorização prévia e expressa do autor.
+
+Para ler os termos jurídicos completos, consulte o arquivo [LICENSE](./LICENSE) ou acesse a página oficial da [Creative Commons CC BY-NC 4.0](https://creativecommons.org/licenses/by-nc/4.0/).
+
 
